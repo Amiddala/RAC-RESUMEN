@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redes de Conmutación — Redes Avanzadas UMSS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:    #0a0d12;
+    --bg-card:    #0f1420;
+    --bg-panel:   #131929;
+    --bg-hover:   #1a2234;
+    --border:     #1e2d45;
+    --border-lit: #2a4060;
+    --accent:     #00c2ff;
+    --accent2:    #00ffa3;
+    --accent3:    #ff6b35;
+    --accent4:    #a259ff;
+    --text-pri:   #e4eaf5;
+    --text-sec:   #7b8fac;
+    --text-dim:   #4a5a72;
+    --code-bg:    #060a10;
+    --progress:   #00c2ff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-pri);
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%; z-index: 9999;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  /* ─── SIDEBAR NAV ─── */
+  #sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 240px;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    padding: 80px 0 24px;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex; flex-direction: column;
+  }
+
+  #sidebar .logo {
+    padding: 0 20px 24px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  #sidebar .logo span { display: block; color: var(--text-sec); font-size: 10px; font-weight: 400; margin-top: 2px; text-transform: none; letter-spacing: 0; }
+
+  #sidebar nav a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px;
+    color: var(--text-sec);
+    text-decoration: none;
+    font-size: 12.5px;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  #sidebar nav a:hover, #sidebar nav a.active {
+    color: var(--text-pri);
+    border-left-color: var(--accent);
+    background: var(--bg-hover);
+  }
+  #sidebar nav a .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border-lit); flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  #sidebar nav a:hover .dot, #sidebar nav a.active .dot { background: var(--accent); }
+
+  #sidebar nav .section-label {
+    padding: 16px 20px 4px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-dim);
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  main {
+    margin-left: 240px;
+    padding: 72px 48px 80px;
+    max-width: 1100px;
+  }
+
+  /* ─── HEADER ─── */
+  .page-header {
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+  .page-header .tag {
+    display: inline-block;
+    background: rgba(0,194,255,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,194,255,0.25);
+    padding: 3px 12px;
+    border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 16px;
+  }
+  .page-header h1 {
+    font-size: 40px; font-weight: 700; line-height: 1.15;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #e4eaf5 30%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .page-header p {
+    color: var(--text-sec); font-size: 16px; max-width: 620px;
+    font-weight: 300;
+  }
+  .meta-row {
+    display: flex; gap: 24px; margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-pill {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .meta-pill span { color: var(--text-sec); }
+
+  /* ─── SECTIONS ─── */
+  section { margin-bottom: 72px; scroll-margin-top: 80px; }
+
+  h2 {
+    font-size: 24px; font-weight: 700;
+    color: var(--text-pri);
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .h2-icon {
+    width: 28px; height: 28px;
+    background: rgba(0,194,255,0.1);
+    border: 1px solid rgba(0,194,255,0.2);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+
+  h3 {
+    font-size: 16px; font-weight: 600;
+    color: var(--text-pri);
+    margin: 28px 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h3::before { content: '//'; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+  p { color: var(--text-sec); margin-bottom: 14px; }
+
+  /* ─── CARDS ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .card:hover { border-color: var(--border-lit); transform: translateY(-2px); }
+  .card:hover::before { opacity: 1; }
+
+  .card .card-icon {
+    font-size: 22px; margin-bottom: 10px;
+  }
+  .card .card-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-pri); margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .card .card-body { font-size: 13px; color: var(--text-sec); line-height: 1.65; }
+
+  .card.accent-green::before { background: linear-gradient(90deg, var(--accent2), transparent); opacity: 1; }
+  .card.accent-orange::before { background: linear-gradient(90deg, var(--accent3), transparent); opacity: 1; }
+  .card.accent-purple::before { background: linear-gradient(90deg, var(--accent4), transparent); opacity: 1; }
+  .card.accent-blue::before { background: linear-gradient(90deg, var(--accent), transparent); opacity: 1; }
+
+  /* ─── CALLOUTS ─── */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-left: 3px solid;
+    font-size: 13.5px;
+  }
+  .callout.info { background: rgba(0,194,255,0.06); border-color: var(--accent); }
+  .callout.warn { background: rgba(255,107,53,0.06); border-color: var(--accent3); }
+  .callout.success { background: rgba(0,255,163,0.06); border-color: var(--accent2); }
+  .callout.purple { background: rgba(162,89,255,0.06); border-color: var(--accent4); }
+
+  .callout strong { color: var(--text-pri); }
+  .callout p { margin: 0; color: var(--text-sec); }
+
+  /* ─── TABLES ─── */
+  .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--bg-panel); }
+  thead th {
+    padding: 12px 16px; text-align: left;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim); white-space: nowrap;
+  }
+  tbody tr { border-top: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: var(--bg-hover); }
+  tbody td { padding: 11px 16px; color: var(--text-sec); vertical-align: top; }
+  tbody td strong { color: var(--text-pri); }
+
+  /* ─── CODE BLOCKS ─── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .code-block .code-header {
+    background: var(--bg-panel);
+    padding: 8px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+  }
+  .code-block pre {
+    padding: 16px;
+    overflow-x: auto;
+    color: var(--accent2);
+    line-height: 1.7;
+  }
+  .code-block pre .comment { color: var(--text-dim); }
+  .code-block pre .cmd { color: var(--accent); }
+  .code-block pre .val { color: var(--accent3); }
+
+  /* ─── BADGE ─── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge-blue { background: rgba(0,194,255,0.12); color: var(--accent); }
+  .badge-green { background: rgba(0,255,163,0.12); color: var(--accent2); }
+  .badge-orange { background: rgba(255,107,53,0.12); color: var(--accent3); }
+  .badge-purple { background: rgba(162,89,255,0.12); color: var(--accent4); }
+
+  /* ─── STEP LIST ─── */
+  .step-list { list-style: none; padding: 0; margin: 16px 0; }
+  .step-list li {
+    display: flex; gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px; color: var(--text-sec);
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-num {
+    min-width: 28px; height: 28px;
+    background: rgba(0,194,255,0.1);
+    border: 1px solid rgba(0,194,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    color: var(--accent); font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ─── PROTOCOL STATE ─── */
+  .state-flow {
+    display: flex; gap: 0; align-items: center;
+    flex-wrap: wrap; margin: 20px 0;
+  }
+  .state-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-pri); text-align: center;
+    min-width: 110px;
+  }
+  .state-box.active { border-color: var(--accent2); color: var(--accent2); background: rgba(0,255,163,0.06); }
+  .state-box.blocked { border-color: var(--accent3); color: var(--accent3); background: rgba(255,107,53,0.06); }
+  .state-box.learn { border-color: var(--accent4); color: var(--accent4); background: rgba(162,89,255,0.06); }
+  .state-box.listen { border-color: var(--accent); color: var(--accent); background: rgba(0,194,255,0.06); }
+
+  .state-arrow {
+    padding: 0 6px;
+    color: var(--text-dim); font-size: 16px;
+  }
+
+  /* ─── CHEAT SHEET ─── */
+  #cheat-sheet .cheat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .cheat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  .cheat-card .cheat-title {
+    background: var(--bg-panel);
+    padding: 10px 16px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--accent); border-bottom: 1px solid var(--border);
+  }
+  .cheat-card .cheat-body { padding: 14px 16px; }
+  .cheat-item {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+    font-size: 12.5px; align-items: baseline;
+  }
+  .cheat-item:last-child { border-bottom: none; }
+  .cheat-item .key { color: var(--text-sec); flex-shrink: 0; }
+  .cheat-item .val { color: var(--text-pri); font-family: 'JetBrains Mono', monospace; text-align: right; font-size: 12px; }
+
+  /* ─── QUIZ ─── */
+  #autoevaluacion .quiz-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .quiz-q {
+    font-size: 14px; font-weight: 600; color: var(--text-pri);
+    margin-bottom: 14px;
+    display: flex; gap: 10px;
+  }
+  .quiz-num {
+    color: var(--accent); font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; flex-shrink: 0;
+  }
+  .quiz-options { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .quiz-options li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 13px; color: var(--text-sec);
+    transition: all 0.2s;
+  }
+  .quiz-options li:hover { border-color: var(--border-lit); background: var(--bg-hover); color: var(--text-pri); }
+  .quiz-options li.correct { border-color: var(--accent2); background: rgba(0,255,163,0.08); color: var(--accent2); }
+  .quiz-options li.wrong { border-color: var(--accent3); background: rgba(255,107,53,0.08); color: var(--accent3); }
+  .quiz-options li.disabled { pointer-events: none; }
+  .quiz-letter {
+    min-width: 20px; height: 20px;
+    border-radius: 50%; border: 1px solid var(--border-lit);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+  }
+  .quiz-explanation {
+    margin-top: 12px; padding: 12px 14px;
+    background: rgba(0,194,255,0.06); border-radius: 6px;
+    border-left: 2px solid var(--accent);
+    font-size: 12.5px; color: var(--text-sec);
+    display: none;
+  }
+  .quiz-explanation.show { display: block; }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 3px; }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    main { margin-left: 0; padding: 60px 20px 60px; }
+    .page-header h1 { font-size: 28px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo">Redes Avanzadas<span>UMSS — Unidad 01</span></div>
+  <nav>
+    <div class="section-label">Contenido</div>
+    <a href="#introduccion"><span class="dot"></span>Introducción</a>
+    <a href="#conceptos"><span class="dot"></span>Conceptos Clave</a>
+    <a href="#ethernet"><span class="dot"></span>Trama Ethernet</a>
+    <a href="#vlans"><span class="dot"></span>VLANs</a>
+    <a href="#spanning-tree"><span class="dot"></span>Spanning Tree (STP)</a>
+    <a href="#bucles"><span class="dot"></span>Bucles de Capa 2</a>
+    <a href="#broadcast-storm"><span class="dot"></span>Tormenta de Broadcast</a>
+    <a href="#sta"><span class="dot"></span>Algoritmo STA</a>
+    <div class="section-label">Referencia</div>
+    <a href="#cheat-sheet"><span class="dot"></span>Cheat Sheet</a>
+    <a href="#autoevaluacion"><span class="dot"></span>Autoevaluación</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HEADER -->
+  <header class="page-header">
+    <div class="tag">Redes Avanzadas · UMSS</div>
+    <h1>Redes de Conmutación<br>Switching — Cisco</h1>
+    <p>Análisis técnico completo de switching en capa 2, VLANs, protocolo Spanning Tree y prevención de bucles en redes LAN.</p>
+    <div class="meta-row">
+      <span class="meta-pill">📋 Capa OSI: <span>Capa 2 (Enlace de Datos)</span></span>
+      <span class="meta-pill">🔧 Tecnología: <span>Ethernet / Cisco IOS</span></span>
+      <span class="meta-pill">📄 Diapositivas: <span>14 slides procesadas</span></span>
+    </div>
+  </header>
+
+  <!-- 1. INTRODUCCION -->
+  <section id="introduccion">
+    <h2><span class="h2-icon">🔀</span>Introducción al Switching</h2>
+    <p>El <strong>switching</strong> es el proceso fundamental de mover tramas de datos entre hosts dentro de una red local. Opera en la <strong>Capa 2 (Enlace de Datos)</strong> del modelo OSI, utilizando direcciones MAC para tomar decisiones de reenvío.</p>
+
+    <div class="card-grid">
+      <div class="card accent-blue">
+        <div class="card-icon">🖥️</div>
+        <div class="card-title">Definición</div>
+        <div class="card-body">Mover tramas de un host a otro host, dentro de una red local (LAN). Opera exclusivamente mediante direcciones MAC.</div>
+      </div>
+      <div class="card accent-green">
+        <div class="card-icon">🏢</div>
+        <div class="card-title">Caso de Uso</div>
+        <div class="card-body">Conectar múltiples dispositivos dentro de la misma red en una oficina o edificio, transportando datos con mínimas colisiones.</div>
+      </div>
+      <div class="card accent-orange">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Ventaja Principal</div>
+        <div class="card-body">Separa los <strong>dominios de colisión</strong>. Cada puerto del switch es un dominio de colisión independiente.</div>
+      </div>
+      <div class="card accent-purple">
+        <div class="card-icon">🤖</div>
+        <div class="card-title">Operación Automática</div>
+        <div class="card-body">El switch gestiona automáticamente el envío y recepción de tramas sin intervención del administrador para el tráfico normal.</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <strong>Nota técnica OSI:</strong>
+      <p>El switching opera en <strong>Capa 2</strong>. A diferencia del routing (Capa 3 / IP), el switch no analiza paquetes IP — solo examina las direcciones MAC de origen y destino de las tramas Ethernet.</p>
+    </div>
+  </section>
+
+  <!-- 2. CONCEPTOS -->
+  <section id="conceptos">
+    <h2><span class="h2-icon">📚</span>Conceptos Clave</h2>
+
+    <h3>¿Por qué se usan los Switches?</h3>
+    <ul class="step-list">
+      <li>
+        <span class="step-num">1</span>
+        <span><strong>Segmentación de colisiones:</strong> Cada puerto del switch constituye su propio dominio de colisión, eliminando las colisiones presentes en las topologías de hub.</span>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <span><strong>Forwarding inteligente:</strong> El switch aprende las direcciones MAC de cada dispositivo conectado y construye una tabla CAM (Content Addressable Memory). Solo envía la trama al puerto de destino correcto.</span>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <span><strong>Transparencia:</strong> Los hosts no necesitan configuración especial. El switch opera de forma transparente entre ellos.</span>
+      </li>
+      <li>
+        <span class="step-num">4</span>
+        <span><strong>Comunicación interna LAN:</strong> Ethernet (Capa 2) es el protocolo por excelencia para comunicar hosts LAN desde el router hacia adentro. Es el medio de transporte que los switches utilizan para comunicarse entre sí.</span>
+      </li>
+    </ul>
+
+    <h3>Dominio de Colisión vs Dominio de Broadcast</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th>Dispositivo que delimita</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-blue">Dominio de Colisión</span></td>
+            <td><strong>Switch (por puerto)</strong></td>
+            <td>Segmento donde dos transmisiones simultáneas causan colisión. El switch aísla cada puerto.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-orange">Dominio de Broadcast</span></td>
+            <td><strong>Router</strong></td>
+            <td>Área donde un broadcast se propaga a todos los dispositivos. El switch NO lo limita (sin VLANs).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. ETHERNET -->
+  <section id="ethernet">
+    <h2><span class="h2-icon">📦</span>Trama Ethernet</h2>
+    <p>Ethernet es el protocolo de Capa 2 utilizado para la comunicación entre hosts LAN. El switch procesa y reenvía estas tramas basándose en las direcciones MAC.</p>
+
+    <h3>Estructura de la Trama Ethernet II</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Campo</th>
+            <th>Tamaño</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>Preamble</strong></td>
+            <td><span class="badge badge-blue">7 bytes</span></td>
+            <td>Sincronización. Patrón alternado de 1s y 0s para sincronizar el receptor.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>SFD</strong> (Start Frame Delimiter)</td>
+            <td><span class="badge badge-blue">1 byte</span></td>
+            <td>Indica el inicio real de la trama (valor <code>0xAB</code>).</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>Destination</strong> (MAC Destino)</td>
+            <td><span class="badge badge-green">6 bytes</span></td>
+            <td>Dirección MAC del host o dispositivo de destino. El switch usa este campo para el reenvío.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>Source</strong> (MAC Origen)</td>
+            <td><span class="badge badge-green">6 bytes</span></td>
+            <td>Dirección MAC del emisor. El switch aprende la tabla CAM de este campo.</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><strong>Type / EtherType</strong></td>
+            <td><span class="badge badge-purple">2 bytes</span></td>
+            <td>Protocolo de Capa 3 encapsulado (0x0800 = IPv4, 0x0806 = ARP, 0x86DD = IPv6).</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><strong>Data and Pad</strong></td>
+            <td><span class="badge badge-orange">46–1500 bytes</span></td>
+            <td>Payload (paquete IP encapsulado). Mínimo 46 bytes; si el dato es menor, se rellena con padding.</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><strong>FCS</strong> (Frame Check Sequence)</td>
+            <td><span class="badge badge-blue">4 bytes</span></td>
+            <td>CRC-32 para detección de errores de transmisión.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <strong>⚠️ Diferencia crítica con IP:</strong>
+      <p>Las tramas Ethernet <strong>NO poseen un campo TTL (Time to Live)</strong> como los paquetes IP. Esto significa que una trama que entra en un bucle de Capa 2 puede circular indefinidamente, a diferencia de un paquete IP que será descartado al llegar a TTL=0.</p>
+    </div>
+
+    <h3>Tamaño total de la trama</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">Tamaño Mínimo</div>
+        <div class="card-body">64 bytes (sin preámbulo/SFD). Garantiza detección de colisiones en CSMA/CD.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Tamaño Máximo (MTU)</div>
+        <div class="card-body">1518 bytes (sin preámbulo/SFD). El campo de datos tiene un máximo de 1500 bytes.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. VLANS -->
+  <section id="vlans">
+    <h2><span class="h2-icon">🗂️</span>VLANs — Virtual LANs</h2>
+    <p>Las VLANs permiten la segmentación lógica de la red sobre una infraestructura física compartida. Solucionan el problema de tener la misma red física en cada edificio o piso.</p>
+
+    <h3>Definición técnica</h3>
+    <div class="callout success">
+      <strong>Concepto:</strong>
+      <p>Las VLANs permiten <strong>separar en dominios lógicos los enlaces</strong>. Es decir, permiten hacer enlaces lógicos de un enlace físico. Un switch con VLANs puede pertenecer a múltiples dominios de broadcast independientes.</p>
+    </div>
+
+    <h3>Problema que resuelven (Topología LAN clásica)</h3>
+    <p>En la topología LAN anterior, cada edificio tenía la misma red física replicada en cada piso:</p>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🏠</div>
+        <div class="card-title">LAN 1 (5° piso)</div>
+        <div class="card-body">Dormitorios de estudiantes. Red independiente por piso en cada edificio.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏫</div>
+        <div class="card-title">LAN 2 (3° piso)</div>
+        <div class="card-body">Oficinas del cuerpo docente. Red física separada, sin comunicación lógica entre edificios.</div>
+      </div>
+    </div>
+
+    <h3>Beneficios de las VLANs</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Beneficio</th>
+            <th>Descripción Técnica</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Seguridad</strong></td><td>Aísla el tráfico entre grupos (docentes, estudiantes, invitados).</td></tr>
+          <tr><td><strong>Reducción de costos</strong></td><td>Una sola infraestructura física soporta múltiples redes lógicas.</td></tr>
+          <tr><td><strong>Superior rendimiento</strong></td><td>Reduce el tamaño de los dominios de broadcast, disminuyendo tráfico innecesario.</td></tr>
+          <tr><td><strong>Mitigación de tormenta de broadcast</strong></td><td>Los broadcasts no se propagan entre VLANs.</td></tr>
+          <tr><td><strong>Mayor eficiencia del personal TI</strong></td><td>Administración centralizada y agrupación lógica por función.</td></tr>
+          <tr><td><strong>Administración de aplicaciones simplificada</strong></td><td>Permite agrupar usuarios por proyecto o aplicación independientemente de la ubicación física.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Ejemplo de asignación VLAN</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Configuración VLAN típica</span><span class="badge badge-blue">CISCO IOS</span></div>
+      <pre><span class="comment">! Crear VLANs en el switch</span>
+Switch(config)# <span class="cmd">vlan</span> <span class="val">10</span>
+Switch(config-vlan)# <span class="cmd">name</span> <span class="val">CUERPO_DOCENTE</span>
+Switch(config)# <span class="cmd">vlan</span> <span class="val">20</span>
+Switch(config-vlan)# <span class="cmd">name</span> <span class="val">ESTUDIANTE</span>
+Switch(config)# <span class="cmd">vlan</span> <span class="val">30</span>
+Switch(config-vlan)# <span class="cmd">name</span> <span class="val">INVITADO</span>
+
+<span class="comment">! Asignar puerto a VLAN (Access mode)</span>
+Switch(config-if)# <span class="cmd">switchport mode</span> <span class="val">access</span>
+Switch(config-if)# <span class="cmd">switchport access vlan</span> <span class="val">10</span>
+
+<span class="comment">! Configurar puerto Trunk (transporta múltiples VLANs)</span>
+Switch(config-if)# <span class="cmd">switchport mode</span> <span class="val">trunk</span>
+Switch(config-if)# <span class="cmd">switchport trunk allowed vlan</span> <span class="val">10,20,30</span></pre>
+    </div>
+  </section>
+
+  <!-- 5. SPANNING TREE -->
+  <section id="spanning-tree">
+    <h2><span class="h2-icon">🌲</span>Protocolo Spanning Tree (STP)</h2>
+
+    <div class="callout info">
+      <strong>Definición oficial:</strong>
+      <p>El protocolo Spanning Tree tiene como función <strong>gestionar la presencia de bucles en topologías de red</strong> debido a la existencia de <strong>enlaces redundantes</strong> (necesarios en muchos casos para garantizar la disponibilidad de las conexiones). El protocolo permite a los dispositivos de interconexión <strong>activar o desactivar automáticamente los enlaces de conexión</strong>, de forma que se garantice la eliminación de bucles.</p>
+    </div>
+
+    <h3>Objetivo dual del STP</h3>
+    <div class="card-grid">
+      <div class="card accent-green">
+        <div class="card-icon">✅</div>
+        <div class="card-title">Permite redundancia</div>
+        <div class="card-body">Permite tener <strong>múltiples rutas físicas</strong> entre dispositivos. Si una ruta falla, el enlace bloqueado puede activarse automáticamente.</div>
+      </div>
+      <div class="card accent-orange">
+        <div class="card-icon">🚫</div>
+        <div class="card-title">Previene bucles</div>
+        <div class="card-body">Bloquea los puertos redundantes para que lógicamente solo exista <strong>una ruta activa</strong> entre dos dispositivos en la topología.</div>
+      </div>
+    </div>
+
+    <h3>Redundancia de Capa 2</h3>
+    <p>La <strong>redundancia de Capa 2 mejora la disponibilidad de la red</strong> con la implementación de rutas de red alternas mediante el agregado de equipos y cables. La interrupción de una sola ruta <strong>no genera impacto</strong> en la conectividad de los dispositivos en la red.</p>
+
+    <h3>Estados de Puerto STP</h3>
+    <div class="state-flow">
+      <div class="state-box blocked">🔴 Blocking</div>
+      <span class="state-arrow">→</span>
+      <div class="state-box listen">🔵 Listening</div>
+      <span class="state-arrow">→</span>
+      <div class="state-box learn">🟣 Learning</div>
+      <span class="state-arrow">→</span>
+      <div class="state-box active">🟢 Forwarding</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Estado</th>
+            <th>Recibe BPDUs</th>
+            <th>Envía BPDUs</th>
+            <th>Aprende MACs</th>
+            <th>Reenvía tramas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-orange">Blocking</span></td>
+            <td>✅ Sí</td><td>❌ No</td><td>❌ No</td><td>❌ No</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-blue">Listening</span></td>
+            <td>✅ Sí</td><td>✅ Sí</td><td>❌ No</td><td>❌ No</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-purple">Learning</span></td>
+            <td>✅ Sí</td><td>✅ Sí</td><td>✅ Sí</td><td>❌ No</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-green">Forwarding</span></td>
+            <td>✅ Sí</td><td>✅ Sí</td><td>✅ Sí</td><td>✅ Sí</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6. BUCLES -->
+  <section id="bucles">
+    <h2><span class="h2-icon">🔁</span>Bucles de Capa 2</h2>
+
+    <div class="callout warn">
+      <strong>Condición de bucle:</strong>
+      <p>Cuando existen <strong>varias rutas entre dos dispositivos</strong> en la red y STP se ha <strong>deshabilitado</strong> en los switches, puede generarse un bucle de Capa 2.</p>
+    </div>
+
+    <h3>Por qué los bucles son peligrosos</h3>
+    <ul class="step-list">
+      <li>
+        <span class="step-num">1</span>
+        <span><strong>Sin TTL en Ethernet:</strong> Las tramas Ethernet <strong>no poseen un campo TTL (Time to Live)</strong> como los paquetes IP. Una trama atrapada en un bucle circulará indefinidamente sin ser descartada automáticamente.</span>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <span><strong>Broadcast flooding:</strong> Las tramas de broadcast se envían a <strong>todos los puertos del switch, excepto el puerto de origen</strong>. Esto asegura que todos los dispositivos del dominio de broadcast reciban la trama. Con múltiples rutas, se genera un bucle sin fin.</span>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <span><strong>Inestabilidad de tabla MAC:</strong> El switch recibe la misma trama por múltiples puertos y actualiza constantemente la dirección MAC en su tabla, causando inestabilidad (MAC flapping).</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 7. BROADCAST STORM -->
+  <section id="broadcast-storm">
+    <h2><span class="h2-icon">⛈️</span>Tormenta de Broadcast</h2>
+
+    <div class="callout warn">
+      <strong>Definición:</strong>
+      <p>Una tormenta de broadcast se produce cuando existen <strong>tantas tramas de broadcast atrapadas en un bucle de Capa 2</strong> que el ancho de banda disponible se agota completamente.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card accent-orange">
+        <div class="card-icon">📡</div>
+        <div class="card-title">Causa</div>
+        <div class="card-body">Bucles de Capa 2 sin STP activo. Las tramas broadcast se replican continuamente en cada iteración del bucle.</div>
+      </div>
+      <div class="card accent-orange">
+        <div class="card-icon">💀</div>
+        <div class="card-title">Consecuencia</div>
+        <div class="card-body"><strong>No existe ancho de banda disponible</strong> para el tráfico legítimo. La red queda completamente no disponible para la comunicación de datos.</div>
+      </div>
+      <div class="card accent-orange">
+        <div class="card-icon">🔮</div>
+        <div class="card-title">Inevitabilidad</div>
+        <div class="card-body">La tormenta de broadcast es <strong>inevitable</strong> en una red con bucles de Capa 2 sin mecanismo de prevención.</div>
+      </div>
+    </div>
+
+    <h3>Flujo de una tormenta de broadcast</h3>
+    <ul class="step-list">
+      <li>
+        <span class="step-num">1</span>
+        <span>Un host envía un frame broadcast (ej: ARP Request). El switch lo reenvía por todos sus puertos (excepto origen).</span>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <span>El frame llega a otro switch que también lo reenvía por todos sus puertos, incluyendo el camino de regreso al primer switch.</span>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <span>Sin TTL y sin STP, el frame sigue circulando, duplicándose con cada iteración hasta saturar completamente el ancho de banda de todos los enlaces.</span>
+      </li>
+      <li>
+        <span class="step-num">4</span>
+        <span>La CPU de los switches se satura procesando los frames. La red colapsa totalmente (denial of service a nivel L2).</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 8. STA -->
+  <section id="sta">
+    <h2><span class="h2-icon">🧮</span>Algoritmo STA (Spanning Tree Algorithm)</h2>
+    <p>STA es el algoritmo que STP utiliza para determinar la topología libre de bucles. Selecciona un <strong>Root Bridge</strong> y calcula los caminos más eficientes hacia él.</p>
+
+    <h3>Campos del BID (Bridge ID)</h3>
+    <p>Cada switch STP tiene un <strong>Bridge ID (BID)</strong> compuesto por:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Campo</th>
+            <th>Tamaño</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Priority</strong></td>
+            <td>2 bytes</td>
+            <td>Valor de prioridad del bridge. Rango: 0–65535. Valor por defecto: <code>32768</code>. El switch con <strong>menor prioridad</strong> gana la elección de Root Bridge.</td>
+          </tr>
+          <tr>
+            <td><strong>MAC Address</strong></td>
+            <td>6 bytes</td>
+            <td>Dirección MAC del switch. Se usa como desempate cuando dos switches tienen la misma prioridad. La <strong>MAC más baja</strong> gana.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Ejemplo del diagrama (valores del material)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Switch</th>
+            <th>Priority</th>
+            <th>MAC Address</th>
+            <th>Rol STP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>S1</strong></td>
+            <td><code>24577</code></td>
+            <td><code>000A00333333</code></td>
+            <td><span class="badge badge-green">Root Bridge</span></td>
+          </tr>
+          <tr>
+            <td><strong>S2</strong></td>
+            <td><code>32769</code></td>
+            <td><code>000A00111111</code></td>
+            <td><span class="badge badge-blue">Non-Root</span></td>
+          </tr>
+          <tr>
+            <td><strong>S3</strong></td>
+            <td><code>32769</code></td>
+            <td><code>000A00222222</code></td>
+            <td><span class="badge badge-blue">Non-Root</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <strong>¿Por qué S1 es el Root Bridge?</strong>
+      <p>S1 tiene la <strong>prioridad más baja (24577)</strong> vs S2 y S3 (ambos con 32769). En STP, <strong>menor prioridad = mayor preferencia</strong>. El Root Bridge es el switch con el BID más bajo.</p>
+    </div>
+
+    <h3>Tipos de puertos STP</h3>
+    <div class="card-grid">
+      <div class="card accent-green">
+        <div class="card-icon">🟢</div>
+        <div class="card-title">Root Port</div>
+        <div class="card-body">Puerto con el camino de menor costo hacia el Root Bridge. <strong>Uno por switch no-root.</strong> Estado: Forwarding.</div>
+      </div>
+      <div class="card accent-blue">
+        <div class="card-icon">🔵</div>
+        <div class="card-title">Designated Port</div>
+        <div class="card-body">Puerto con el mejor camino hacia el Root Bridge para un segmento. <strong>Uno por segmento.</strong> Estado: Forwarding.</div>
+      </div>
+      <div class="card accent-orange">
+        <div class="card-icon">🔴</div>
+        <div class="card-title">Non-Designated Port</div>
+        <div class="card-body">Puerto bloqueado para prevenir bucles. <strong>No reenvía tramas de usuario.</strong> Estado: Blocking. Solo recibe BPDUs.</div>
+      </div>
+    </div>
+
+    <h3>Proceso de STA en 4 pasos</h3>
+    <ul class="step-list">
+      <li>
+        <span class="step-num">1</span>
+        <span><strong>Elegir Root Bridge:</strong> Todos los switches intercambian BPDUs. El switch con menor BID se convierte en Root Bridge. Todos sus puertos quedan en estado Forwarding (Designated Ports).</span>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <span><strong>Elegir Root Ports:</strong> Cada switch no-root selecciona el puerto con menor costo de ruta acumulado hacia el Root Bridge como su Root Port.</span>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <span><strong>Elegir Designated Ports:</strong> En cada segmento de red, el switch con el menor costo de ruta hacia el Root Bridge tiene su puerto como Designated Port (Forwarding).</span>
+      </li>
+      <li>
+        <span class="step-num">4</span>
+        <span><strong>Bloquear Non-Designated Ports:</strong> Todos los puertos que no son Root ni Designated quedan en estado Blocking, eliminando los bucles lógicamente.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- CHEAT SHEET -->
+  <section id="cheat-sheet">
+    <h2><span class="h2-icon">⚡</span>Cheat Sheet — Referencia Rápida</h2>
+    <div class="cheat-grid">
+
+      <div class="cheat-card">
+        <div class="cheat-title">Trama Ethernet II — Campos y Tamaños</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Preamble</span><span class="val">7 bytes</span></div>
+          <div class="cheat-item"><span class="key">SFD</span><span class="val">1 byte</span></div>
+          <div class="cheat-item"><span class="key">Destination MAC</span><span class="val">6 bytes</span></div>
+          <div class="cheat-item"><span class="key">Source MAC</span><span class="val">6 bytes</span></div>
+          <div class="cheat-item"><span class="key">Type/EtherType</span><span class="val">2 bytes</span></div>
+          <div class="cheat-item"><span class="key">Data + Pad</span><span class="val">46–1500 bytes</span></div>
+          <div class="cheat-item"><span class="key">FCS (CRC-32)</span><span class="val">4 bytes</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">STP — Valores de Prioridad BID</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Prioridad por defecto</span><span class="val">32768</span></div>
+          <div class="cheat-item"><span class="key">Rango válido</span><span class="val">0 – 65535</span></div>
+          <div class="cheat-item"><span class="key">Incremento mínimo</span><span class="val">4096</span></div>
+          <div class="cheat-item"><span class="key">Root Bridge = BID</span><span class="val">más bajo</span></div>
+          <div class="cheat-item"><span class="key">Desempate</span><span class="val">MAC más baja</span></div>
+          <div class="cheat-item"><span class="key">BID size total</span><span class="val">8 bytes</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">Estados de Puerto STP</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Blocking</span><span class="val">Recibe BPDUs</span></div>
+          <div class="cheat-item"><span class="key">Listening</span><span class="val">Env/Rec BPDUs</span></div>
+          <div class="cheat-item"><span class="key">Learning</span><span class="val">Aprende MACs</span></div>
+          <div class="cheat-item"><span class="key">Forwarding</span><span class="val">Activo total</span></div>
+          <div class="cheat-item"><span class="key">Disabled</span><span class="val">Admin OFF</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">Tipos de Puertos STP</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Root Port</span><span class="val">1 por switch non-root</span></div>
+          <div class="cheat-item"><span class="key">Designated Port</span><span class="val">1 por segmento</span></div>
+          <div class="cheat-item"><span class="key">Non-Designated</span><span class="val">Bloqueado</span></div>
+          <div class="cheat-item"><span class="key">Root Bridge ports</span><span class="val">todos Designated</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">Capa OSI — Referencia Switching</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Switching opera en</span><span class="val">Capa 2 (L2)</span></div>
+          <div class="cheat-item"><span class="key">Dirección usada</span><span class="val">MAC (48-bit)</span></div>
+          <div class="cheat-item"><span class="key">Protocolo Capa 2</span><span class="val">Ethernet</span></div>
+          <div class="cheat-item"><span class="key">Tabla del switch</span><span class="val">CAM / MAC Table</span></div>
+          <div class="cheat-item"><span class="key">Routing opera en</span><span class="val">Capa 3 (L3)</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">VLAN IDs — Ejemplo del material</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">VLAN 10</span><span class="val">Cuerpo Docente (172.17.10.x/24)</span></div>
+          <div class="cheat-item"><span class="key">VLAN 20</span><span class="val">Estudiante (172.17.20.x/24)</span></div>
+          <div class="cheat-item"><span class="key">VLAN 30</span><span class="val">Invitado (172.17.30.x/24)</span></div>
+          <div class="cheat-item"><span class="key">Rango VLANs normales</span><span class="val">1 – 1005</span></div>
+          <div class="cheat-item"><span class="key">VLAN nativa default</span><span class="val">VLAN 1</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- AUTOEVALUACION -->
+  <section id="autoevaluacion">
+    <h2><span class="h2-icon">🧪</span>Autoevaluación</h2>
+    <p>Selecciona la respuesta correcta en cada pregunta. Los resultados aparecerán inmediatamente con una explicación técnica.</p>
+
+    <!-- Q1 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q1</span> ¿En qué capa del modelo OSI opera el switching y qué tipo de dirección utiliza para tomar decisiones de reenvío?</div>
+      <ul class="quiz-options" data-answer="1">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span> Capa 3, utilizando direcciones IP</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span> Capa 2, utilizando direcciones MAC</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span> Capa 1, utilizando señales eléctricas</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span> Capa 4, utilizando puertos TCP/UDP</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> El switching opera en la Capa 2 (Enlace de Datos) del modelo OSI. Utiliza direcciones MAC (48-bit) para construir la tabla CAM y reenviar tramas al puerto correcto.</div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q2</span> ¿Cuál es el tamaño exacto del campo "Data and Pad" en una trama Ethernet II y por qué existe un mínimo?</div>
+      <ul class="quiz-options" data-answer="2">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span> 0 – 1500 bytes; el mínimo no existe</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span> 64 – 1500 bytes; para compatibilidad con IPv6</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span> 46 – 1500 bytes; el mínimo de 46 bytes garantiza la detección de colisiones en CSMA/CD</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span> 100 – 1500 bytes; por requisitos del protocolo ARP</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> El campo Data and Pad tiene entre 46 y 1500 bytes. El mínimo de 46 bytes (junto con los headers, hace una trama mínima de 64 bytes) es necesario para que la colisión sea detectable en CSMA/CD antes de que el primer bit llegue al extremo más lejano del segmento.</div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q3</span> En el escenario del material, hay tres switches: S1 (Priority=24577, MAC=000A00333333), S2 (Priority=32769, MAC=000A00111111) y S3 (Priority=32769, MAC=000A00222222). ¿Cuál es el Root Bridge y por qué?</div>
+      <ul class="quiz-options" data-answer="0">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span> S1, porque tiene la prioridad más baja (24577)</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span> S2, porque tiene la MAC más baja (000A00111111)</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span> S3, porque tiene la prioridad más alta (32769)</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span> Todos son Root Bridge simultáneamente</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> S1 es el Root Bridge porque tiene la prioridad BID más baja (24577 < 32769). En STP, el switch con el BID numéricamente más bajo gana la elección. La MAC solo se usa como desempate cuando la prioridad es igual.</div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q4</span> ¿Por qué las tramas Ethernet en un bucle de Capa 2 son más peligrosas que los paquetes IP en un bucle de Capa 3?</div>
+      <ul class="quiz-options" data-answer="1">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span> Porque Ethernet usa más ancho de banda que IP</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span> Porque las tramas Ethernet no tienen campo TTL, por lo que circularán indefinidamente sin ser descartadas</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span> Porque los switches son más lentos que los routers para procesar paquetes</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span> Porque Ethernet no soporta broadcast</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> Los paquetes IP tienen un campo TTL que se decrementa en cada salto y son descartados cuando TTL=0. Las tramas Ethernet <strong>no tienen TTL</strong>, por lo que una trama en un bucle L2 circulará para siempre, causando una tormenta de broadcast que satura el ancho de banda.</div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q5</span> ¿Cuál es la función técnica de las VLANs en relación con los dominios de broadcast?</div>
+      <ul class="quiz-options" data-answer="2">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span> Las VLANs aumentan el tamaño del dominio de broadcast para mayor alcance</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span> Las VLANs eliminan completamente los dominios de broadcast de la red</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span> Las VLANs crean dominios de broadcast lógicamente separados sobre una misma infraestructura física, segmentando el tráfico entre grupos</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span> Las VLANs solo funcionan a nivel de Capa 3 con enrutamiento</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> Las VLANs separan en dominios lógicos los enlaces físicos. Permiten hacer enlaces lógicos de un enlace físico. Un broadcast en VLAN 10 no se propaga a VLAN 20 o VLAN 30. Esto reduce el tráfico innecesario y mejora la seguridad, aunque sigue requiriendo un router o switch L3 para comunicación inter-VLAN.</div>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+  // ─── PROGRESS BAR ───
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (scrolled / total * 100) + '%';
+  });
+
+  // ─── ACTIVE NAV ───
+  const navLinks = document.querySelectorAll('#sidebar nav a');
+  const sections = document.querySelectorAll('section');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // ─── QUIZ ───
+  function checkAnswer(el) {
+    const ul = el.closest('ul');
+    if (ul.dataset.answered) return;
+    ul.dataset.answered = '1';
+
+    const correct = parseInt(ul.dataset.answer);
+    const chosen = parseInt(el.dataset.opt);
+
+    ul.querySelectorAll('li').forEach((li, i) => {
+      li.classList.add('disabled');
+      if (i === correct) li.classList.add('correct');
+      else if (i === chosen && chosen !== correct) li.classList.add('wrong');
+    });
+
+    const explanation = ul.closest('.quiz-item').querySelector('.quiz-explanation');
+    explanation.classList.add('show');
+  }
+</script>
+</body>
+</html>

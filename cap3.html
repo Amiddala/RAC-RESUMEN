@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Routing — Redes Avanzadas UMSS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:    #0a0d12;
+    --bg-card:    #0f1420;
+    --bg-panel:   #131929;
+    --bg-hover:   #1a2234;
+    --border:     #1e2d45;
+    --border-lit: #2a4060;
+    --accent:     #00c2ff;
+    --accent2:    #00ffa3;
+    --accent3:    #ff6b35;
+    --accent4:    #a259ff;
+    --text-pri:   #e4eaf5;
+    --text-sec:   #7b8fac;
+    --text-dim:   #4a5a72;
+    --code-bg:    #060a10;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg-deep); color: var(--text-pri); font-family: 'Sora', sans-serif; font-size: 15px; line-height: 1.75; overflow-x: hidden; }
+
+  /* ─── PROGRESS BAR ─── */
+  #progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent4), var(--accent)); width: 0%; z-index: 9999; transition: width 0.1s linear; box-shadow: 0 0 10px var(--accent4); }
+
+  /* ─── CHAPTER BANNER ─── */
+  #chapter-banner { position: fixed; top: 3px; left: 240px; right: 0; height: 44px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 6px; z-index: 90; overflow-x: auto; scrollbar-width: none; }
+  #chapter-banner::-webkit-scrollbar { display: none; }
+  #chapter-banner .ch-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); white-space: nowrap; margin-right: 6px; flex-shrink: 0; }
+  .ch-btn { display: flex; align-items: center; gap: 7px; padding: 5px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-sec); font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; flex-shrink: 0; text-decoration: none; transition: all 0.2s; }
+  .ch-btn:hover { border-color: var(--border-lit); background: var(--bg-hover); color: var(--text-pri); }
+  .ch-btn.active { border-color: var(--accent4); background: rgba(162,89,255,0.1); color: var(--accent4); font-weight: 600; }
+  .ch-btn.locked { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .ch-btn .ch-num { width: 18px; height: 18px; border-radius: 4px; background: rgba(162,89,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent4); flex-shrink: 0; }
+  .ch-btn.active .ch-num { background: rgba(162,89,255,0.2); }
+  .ch-btn:not(.active):not(.locked) .ch-num { background: rgba(0,194,255,0.12); color: var(--accent); }
+  .ch-btn.locked .ch-num { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+  .ch-lock { font-size: 10px; color: var(--text-dim); }
+
+  /* ─── SIDEBAR ─── */
+  #sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: var(--bg-panel); border-right: 1px solid var(--border); padding: 80px 0 0; overflow-y: auto; z-index: 100; display: flex; flex-direction: column; }
+  #sidebar .logo { padding: 0 20px 24px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--accent4); border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  #sidebar .logo span { display: block; color: var(--text-sec); font-size: 10px; font-weight: 400; margin-top: 2px; text-transform: none; letter-spacing: 0; }
+  #sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: var(--text-sec); text-decoration: none; font-size: 12.5px; border-left: 2px solid transparent; transition: all 0.2s; }
+  #sidebar nav a:hover, #sidebar nav a.active { color: var(--text-pri); border-left-color: var(--accent4); background: var(--bg-hover); }
+  #sidebar nav a .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-lit); flex-shrink: 0; transition: background 0.2s; }
+  #sidebar nav a:hover .dot, #sidebar nav a.active .dot { background: var(--accent4); }
+  #sidebar nav .section-label { padding: 16px 20px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+
+  /* ─── SIDEBAR CHAPTERS ─── */
+  .sidebar-chapters { margin-top: auto; border-top: 1px solid var(--border); padding: 16px 20px; }
+  .sidebar-chapters .sc-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 10px; }
+  .sc-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; text-decoration: none; margin-bottom: 4px; border: 1px solid transparent; transition: all 0.2s; }
+  .sc-item:hover { background: var(--bg-hover); border-color: var(--border); }
+  .sc-item.sc-active { background: rgba(162,89,255,0.08); border-color: rgba(162,89,255,0.2); }
+  .sc-item.sc-locked { opacity: 0.45; pointer-events: none; }
+  .sc-num-badge { width: 24px; height: 24px; border-radius: 6px; background: rgba(0,194,255,0.12); border: 1px solid rgba(0,194,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent); flex-shrink: 0; }
+  .sc-item.sc-active .sc-num-badge { background: rgba(162,89,255,0.15); border-color: rgba(162,89,255,0.3); color: var(--accent4); }
+  .sc-item.sc-locked .sc-num-badge { background: rgba(255,255,255,0.04); color: var(--text-dim); border-color: var(--border); }
+  .sc-info { flex: 1; min-width: 0; }
+  .sc-title { font-size: 12px; font-weight: 600; color: var(--text-pri); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-item.sc-locked .sc-title { color: var(--text-dim); }
+  .sc-sub { font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+
+  /* ─── MAIN ─── */
+  main { margin-left: 240px; padding: 96px 48px 80px; max-width: 1100px; }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header { padding-bottom: 48px; border-bottom: 1px solid var(--border); margin-bottom: 56px; }
+  .page-header .tag { display: inline-block; background: rgba(162,89,255,0.1); color: var(--accent4); border: 1px solid rgba(162,89,255,0.25); padding: 3px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .page-header h1 { font-size: 40px; font-weight: 700; line-height: 1.15; letter-spacing: -1px; background: linear-gradient(135deg, #e4eaf5 30%, var(--accent4) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; }
+  .page-header p { color: var(--text-sec); font-size: 16px; max-width: 620px; font-weight: 300; }
+  .meta-row { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+  .meta-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
+  .meta-pill span { color: var(--text-sec); }
+
+  /* ─── SECTIONS ─── */
+  section { margin-bottom: 72px; scroll-margin-top: 80px; }
+  h2 { font-size: 24px; font-weight: 700; color: var(--text-pri); margin-bottom: 24px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  h2 .h2-icon { width: 28px; height: 28px; background: rgba(162,89,255,0.1); border: 1px solid rgba(162,89,255,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  h3 { font-size: 16px; font-weight: 600; color: var(--text-pri); margin: 28px 0 12px; display: flex; align-items: center; gap: 8px; }
+  h3::before { content: '//'; color: var(--accent4); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  p { color: var(--text-sec); margin-bottom: 14px; }
+
+  /* ─── CARDS ─── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent4), transparent); opacity: 0; transition: opacity 0.2s; }
+  .card:hover { border-color: var(--border-lit); transform: translateY(-2px); }
+  .card:hover::before { opacity: 1; }
+  .card .card-icon { font-size: 22px; margin-bottom: 10px; }
+  .card .card-title { font-size: 13px; font-weight: 700; color: var(--text-pri); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card .card-body { font-size: 13px; color: var(--text-sec); line-height: 1.65; }
+  .card.accent-blue::before { background: linear-gradient(90deg, var(--accent), transparent); opacity: 1; }
+  .card.accent-green::before { background: linear-gradient(90deg, var(--accent2), transparent); opacity: 1; }
+  .card.accent-orange::before { background: linear-gradient(90deg, var(--accent3), transparent); opacity: 1; }
+  .card.accent-purple::before { background: linear-gradient(90deg, var(--accent4), transparent); opacity: 1; }
+
+  /* ─── CALLOUTS ─── */
+  .callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; border-left: 3px solid; font-size: 13.5px; }
+  .callout.info { background: rgba(0,194,255,0.06); border-color: var(--accent); }
+  .callout.warn { background: rgba(255,107,53,0.06); border-color: var(--accent3); }
+  .callout.success { background: rgba(0,255,163,0.06); border-color: var(--accent2); }
+  .callout.purple { background: rgba(162,89,255,0.06); border-color: var(--accent4); }
+  .callout strong { color: var(--text-pri); }
+  .callout p { margin: 0; color: var(--text-sec); }
+
+  /* ─── TABLES ─── */
+  .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--bg-panel); }
+  thead th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); white-space: nowrap; }
+  tbody tr { border-top: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: var(--bg-hover); }
+  tbody td { padding: 11px 16px; color: var(--text-sec); vertical-align: top; }
+  tbody td strong { color: var(--text-pri); }
+
+  /* ─── CODE BLOCKS ─── */
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .code-block .code-header { background: var(--bg-panel); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .code-block pre { padding: 16px; overflow-x: auto; color: var(--accent2); line-height: 1.7; }
+  .code-block pre .comment { color: var(--text-dim); }
+  .code-block pre .cmd { color: var(--accent4); }
+  .code-block pre .val { color: var(--accent3); }
+  .code-block pre .addr { color: var(--accent); }
+
+  /* ─── BADGE ─── */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; }
+  .badge-blue { background: rgba(0,194,255,0.12); color: var(--accent); }
+  .badge-green { background: rgba(0,255,163,0.12); color: var(--accent2); }
+  .badge-orange { background: rgba(255,107,53,0.12); color: var(--accent3); }
+  .badge-purple { background: rgba(162,89,255,0.12); color: var(--accent4); }
+
+  /* ─── STEP LIST ─── */
+  .step-list { list-style: none; padding: 0; margin: 16px 0; }
+  .step-list li { display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text-sec); }
+  .step-list li:last-child { border-bottom: none; }
+  .step-num { min-width: 28px; height: 28px; background: rgba(162,89,255,0.1); border: 1px solid rgba(162,89,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent4); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; margin-top: 1px; }
+
+  /* ─── TREE DIAGRAM ─── */
+  .tree-diagram { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 24px 20px; margin: 20px 0; overflow-x: auto; }
+  .tree-root { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .tree-node { display: inline-flex; align-items: center; justify-content: center; padding: 7px 16px; border-radius: 7px; font-size: 12px; font-weight: 700; border: 1px solid; white-space: nowrap; }
+  .tree-node.root { background: rgba(162,89,255,0.15); border-color: var(--accent4); color: var(--accent4); font-size: 13px; }
+  .tree-node.static { background: rgba(75,75,75,0.2); border-color: #555; color: #aaa; }
+  .tree-node.dynamic { background: rgba(255,107,53,0.1); border-color: var(--accent3); color: var(--accent3); }
+  .tree-node.interior { background: rgba(0,255,163,0.1); border-color: var(--accent2); color: var(--accent2); }
+  .tree-node.exterior { background: rgba(0,194,255,0.1); border-color: var(--accent); color: var(--accent); }
+  .tree-node.link-state { background: rgba(0,255,163,0.08); border-color: rgba(0,255,163,0.4); color: var(--accent2); }
+  .tree-node.dist-vec { background: rgba(255,107,53,0.08); border-color: rgba(255,107,53,0.4); color: var(--accent3); }
+  .tree-node.leaf-blue { background: rgba(0,194,255,0.08); border-color: rgba(0,194,255,0.3); color: var(--accent); }
+  .tree-node.leaf-purple { background: rgba(162,89,255,0.08); border-color: rgba(162,89,255,0.3); color: var(--accent4); }
+  .tree-level { display: flex; gap: 16px; justify-content: center; margin-top: 16px; position: relative; flex-wrap: wrap; }
+  .tree-connector { width: 1px; height: 20px; background: var(--border-lit); margin: 0 auto; }
+
+  /* ─── IPv6 ADDRESS TYPE GRID ─── */
+  .addr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .addr-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .addr-card .addr-type { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .addr-card .addr-prefix { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 6px; }
+  .addr-card .addr-desc { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
+  .addr-card.type-global { border-top: 2px solid var(--accent2); }
+  .addr-card.type-global .addr-type { color: var(--accent2); }
+  .addr-card.type-link { border-top: 2px solid var(--accent); }
+  .addr-card.type-link .addr-type { color: var(--accent); }
+  .addr-card.type-loop { border-top: 2px solid var(--text-dim); }
+  .addr-card.type-loop .addr-type { color: var(--text-sec); }
+  .addr-card.type-mc { border-top: 2px solid var(--accent3); }
+  .addr-card.type-mc .addr-type { color: var(--accent3); }
+  .addr-card.type-unique { border-top: 2px solid var(--accent4); }
+  .addr-card.type-unique .addr-type { color: var(--accent4); }
+  .addr-card.type-any { border-top: 2px solid #ffcc00; }
+  .addr-card.type-any .addr-type { color: #ffcc00; }
+  .addr-card.type-unspec { border-top: 2px solid var(--text-dim); }
+  .addr-card.type-unspec .addr-type { color: var(--text-dim); }
+
+  /* ─── CHEAT SHEET ─── */
+  #cheat-sheet .cheat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .cheat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .cheat-card .cheat-title { background: var(--bg-panel); padding: 10px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--accent4); border-bottom: 1px solid var(--border); }
+  .cheat-card .cheat-body { padding: 14px 16px; }
+  .cheat-item { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; align-items: baseline; }
+  .cheat-item:last-child { border-bottom: none; }
+  .cheat-item .key { color: var(--text-sec); flex-shrink: 0; }
+  .cheat-item .val { color: var(--text-pri); font-family: 'JetBrains Mono', monospace; text-align: right; font-size: 12px; }
+
+  /* ─── QUIZ ─── */
+  #autoevaluacion .quiz-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .quiz-q { font-size: 14px; font-weight: 600; color: var(--text-pri); margin-bottom: 14px; display: flex; gap: 10px; }
+  .quiz-num { color: var(--accent4); font-family: 'JetBrains Mono', monospace; font-size: 13px; flex-shrink: 0; }
+  .quiz-options { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .quiz-options li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-sec); transition: all 0.2s; }
+  .quiz-options li:hover { border-color: var(--border-lit); background: var(--bg-hover); color: var(--text-pri); }
+  .quiz-options li.correct { border-color: var(--accent2); background: rgba(0,255,163,0.08); color: var(--accent2); }
+  .quiz-options li.wrong { border-color: var(--accent3); background: rgba(255,107,53,0.08); color: var(--accent3); }
+  .quiz-options li.disabled { pointer-events: none; }
+  .quiz-letter { min-width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border-lit); display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+  .quiz-explanation { margin-top: 12px; padding: 12px 14px; background: rgba(162,89,255,0.06); border-radius: 6px; border-left: 2px solid var(--accent4); font-size: 12.5px; color: var(--text-sec); display: none; }
+  .quiz-explanation.show { display: block; }
+
+  /* ─── CHAPTER FOOTER ─── */
+  .chapter-footer { margin-top: 80px; border-top: 1px solid var(--border); padding-top: 48px; }
+  .chapter-footer .cf-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 20px; }
+  .chapter-nav-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .chapter-nav-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; text-decoration: none; display: flex; flex-direction: column; gap: 8px; transition: all 0.25s; position: relative; overflow: hidden; }
+  .chapter-nav-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent4), var(--accent)); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+  .chapter-nav-card:hover { border-color: var(--border-lit); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .chapter-nav-card:hover::after { transform: scaleX(1); }
+  .chapter-nav-card.locked-card { opacity: 0.5; pointer-events: none; }
+  .cnc-dir { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+  .cnc-dir.next-dir { color: var(--accent4); }
+  .cnc-dir.prev-dir { color: var(--accent); }
+  .cnc-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
+  .cnc-title { font-size: 15px; font-weight: 700; color: var(--text-pri); line-height: 1.3; }
+  .cnc-desc { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
+  .cnc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .cnc-tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+  .locked-note { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 3px; }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    #chapter-banner { left: 0; }
+    main { margin-left: 0; padding: 96px 20px 60px; }
+    .page-header h1 { font-size: 28px; }
+    .card-grid { grid-template-columns: 1fr; }
+    .chapter-nav-cards { grid-template-columns: 1fr; }
+    .addr-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- CHAPTER BANNER -->
+<div id="chapter-banner">
+  <span class="ch-label">Capítulos</span>
+  <a href="index.html" class="ch-btn">
+    <span class="ch-num">01</span>
+    Redes de Conmutación
+  </a>
+  <a href="index2.html" class="ch-btn active">
+    <span class="ch-num">02</span>
+    Routing
+  </a>
+  <span class="ch-btn locked"><span class="ch-num">03</span>Próximamente<span class="ch-lock">🔒</span></span>
+  <span class="ch-btn locked"><span class="ch-num">04</span>Próximamente<span class="ch-lock">🔒</span></span>
+</div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo">Redes Avanzadas<span>UMSS — Unidad 02</span></div>
+  <nav>
+    <div class="section-label">Contenido</div>
+    <a href="#introduccion"><span class="dot"></span>Introducción</a>
+    <a href="#mejor-ruta"><span class="dot"></span>La Mejor Ruta</a>
+    <a href="#metrica"><span class="dot"></span>La Métrica</a>
+    <a href="#protocolos"><span class="dot"></span>Protocolos</a>
+    <a href="#sistema-autonomo"><span class="dot"></span>Sistema Autónomo</a>
+    <a href="#ipv6"><span class="dot"></span>IPv6</a>
+    <a href="#notacion-ipv6"><span class="dot"></span>Notación IPv6</a>
+    <a href="#estatico"><span class="dot"></span>Enrut. Estático</a>
+    <a href="#laboratorio"><span class="dot"></span>Lab. Mikrotik</a>
+    <div class="section-label">Referencia</div>
+    <a href="#cheat-sheet"><span class="dot"></span>Cheat Sheet</a>
+    <a href="#autoevaluacion"><span class="dot"></span>Autoevaluación</a>
+  </nav>
+
+  <div class="sidebar-chapters">
+    <div class="sc-label">Todos los Capítulos</div>
+    <a href="index.html" class="sc-item">
+      <span class="sc-num-badge">01</span>
+      <div class="sc-info">
+        <div class="sc-title">Redes de Conmutación</div>
+        <div class="sc-sub">Switching · VLANs · STP</div>
+      </div>
+    </a>
+    <a href="index2.html" class="sc-item sc-active">
+      <span class="sc-num-badge">02</span>
+      <div class="sc-info">
+        <div class="sc-title">Routing</div>
+        <div class="sc-sub">IPv6 · Protocolos · DA</div>
+      </div>
+    </a>
+    <span class="sc-item sc-locked">
+      <span class="sc-num-badge">03</span>
+      <div class="sc-info">
+        <div class="sc-title">Próximamente</div>
+        <div class="sc-sub">—</div>
+      </div>
+    </span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HEADER -->
+  <header class="page-header">
+    <div class="tag">Redes Avanzadas · UMSS</div>
+    <h1>Routing<br>Enrutamiento IP</h1>
+    <p>Protocolos de enrutamiento, métricas, sistemas autónomos, IPv6 y configuración de rutas estáticas con Cisco y Mikrotik.</p>
+    <div class="meta-row">
+      <span class="meta-pill">📋 Capa OSI: <span>Capa 3 (Red)</span></span>
+      <span class="meta-pill">🔧 Protocolos: <span>RIP · OSPF · BGP · EIGRP</span></span>
+      <span class="meta-pill">📄 Diapositivas: <span>25 slides procesadas</span></span>
+    </div>
+  </header>
+
+  <!-- 1. INTRODUCCIÓN -->
+  <section id="introduccion">
+    <h2><span class="h2-icon">🗺️</span>Introducción al Routing</h2>
+    <p>El routing es la <strong>función de buscar un camino entre todos los posibles en una red de paquetes</strong> cuyas topologías poseen una gran conectividad. Dado que se trata de encontrar la mejor ruta posible, lo primero será definir qué se entiende por "mejor ruta" y cuál es la <strong>"métrica"</strong> que se debe utilizar para medirla.</p>
+
+    <div class="card-grid">
+      <div class="card accent-purple">
+        <div class="card-icon">📍</div>
+        <div class="card-title">Capa del Modelo OSI</div>
+        <div class="card-body">El routing opera en la <strong>Capa 3 (Red)</strong>. Utiliza direcciones IP (32-bit IPv4 / 128-bit IPv6) para decisiones de reenvío, a diferencia del switching que usa MACs.</div>
+      </div>
+      <div class="card accent-blue">
+        <div class="card-icon">🔍</div>
+        <div class="card-title">Objetivo Principal</div>
+        <div class="card-body">Determinar el camino óptimo entre el origen y el destino a través de múltiples redes interconectadas mediante routers.</div>
+      </div>
+      <div class="card accent-green">
+        <div class="card-icon">🧩</div>
+        <div class="card-title">Elementos Clave</div>
+        <div class="card-body">Mejor ruta, métrica, tabla de enrutamiento, protocolo de enrutamiento e interfaz de salida del router.</div>
+      </div>
+    </div>
+
+    <div class="callout purple">
+      <strong>Switching vs. Routing:</strong>
+      <p>El switching (Capa 2) mueve <strong>tramas</strong> usando MACs dentro de una LAN. El routing (Capa 3) mueve <strong>paquetes</strong> usando IPs entre redes distintas. El router desencapsula la trama L2, examina el paquete L3 y lo reencapsula en una nueva trama para el siguiente salto.</p>
+    </div>
+  </section>
+
+  <!-- 2. MEJOR RUTA -->
+  <section id="mejor-ruta">
+    <h2><span class="h2-icon">🏆</span>La Mejor Ruta</h2>
+    <p>La determinación de la mejor ruta implica la <strong>evaluación de varias rutas hacia la misma red de destino</strong> y la selección de la ruta óptima o la más corta para llegar a esa red.</p>
+    <p>Cuando existen varias rutas hacia la misma red, <strong>cada ruta utiliza una interfaz de salida diferente en el router</strong> para llegar a esa red.</p>
+
+    <h3>Proceso de selección de ruta</h3>
+    <ul class="step-list">
+      <li><span class="step-num">1</span><span>El router recibe un paquete y extrae la dirección IP de destino.</span></li>
+      <li><span class="step-num">2</span><span>Busca en su tabla de enrutamiento la entrada con el <strong>prefijo más largo que coincida</strong> (Longest Prefix Match).</span></li>
+      <li><span class="step-num">3</span><span>Si existen varias entradas con igual prefijo, usa la <strong>Distancia Administrativa</strong> para elegir la más confiable.</span></li>
+      <li><span class="step-num">4</span><span>Si DA es igual, usa la <strong>métrica</strong> del protocolo para elegir la ruta con menor costo.</span></li>
+      <li><span class="step-num">5</span><span>Reenvía el paquete por la interfaz de salida asociada a la ruta ganadora.</span></li>
+    </ul>
+  </section>
+
+  <!-- 3. MÉTRICA -->
+  <section id="metrica">
+    <h2><span class="h2-icon">📏</span>La Métrica</h2>
+    <div class="callout purple">
+      <strong>Definición:</strong>
+      <p>Una métrica es un <strong>valor mensurable que el protocolo de enrutamiento asigna a distintas rutas</strong> según la utilidad que tengan. En situaciones donde hay varias rutas hacia la misma red remota, las métricas se utilizan para determinar el <strong>"costo" total de una ruta de origen a destino</strong>.</p>
+    </div>
+
+    <h3>Tipos de métricas por protocolo</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Protocolo</th><th>Métrica Utilizada</th><th>Descripción</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>RIP</strong></td><td><span class="badge badge-orange">Hop Count</span></td><td>Número de saltos (routers) hasta el destino. Máximo 15 saltos (16 = inalcanzable).</td></tr>
+          <tr><td><strong>OSPF</strong></td><td><span class="badge badge-blue">Cost (Costo)</span></td><td>Basado en el ancho de banda de la interfaz. Costo = 10⁸ / BW(bps).</td></tr>
+          <tr><td><strong>EIGRP</strong></td><td><span class="badge badge-purple">Composite</span></td><td>Métrica compuesta: bandwidth, delay, reliability, load, MTU.</td></tr>
+          <tr><td><strong>BGP</strong></td><td><span class="badge badge-green">Attributes</span></td><td>Múltiples atributos: AS-path, MED, Local Preference, Weight.</td></tr>
+          <tr><td><strong>IS-IS</strong></td><td><span class="badge badge-blue">Cost</span></td><td>Valor de costo asignado administrativamente a cada enlace.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Distancia Administrativa (DA)</h3>
+    <p>La <strong>Distancia Administrativa</strong> es un valor de confiabilidad asignado a la fuente de la ruta. A menor DA, <strong>mayor confianza</strong>. Si dos protocolos aprenden la misma red, el de menor DA gana.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Origen de la Ruta</th><th>Distancia Administrativa</th><th>Confiabilidad</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Conectado</strong></td><td><span class="badge badge-green">0</span></td><td>Máxima — interfaz activa del propio router</td></tr>
+          <tr><td><strong>Estática</strong></td><td><span class="badge badge-green">1</span></td><td>Casi máxima — configuración manual</td></tr>
+          <tr><td><strong>Ruta sumarizada EIGRP</strong></td><td><span class="badge badge-blue">5</span></td><td></td></tr>
+          <tr><td><strong>BGP externo</strong></td><td><span class="badge badge-blue">20</span></td><td></td></tr>
+          <tr><td><strong>EIGRP interno</strong></td><td><span class="badge badge-blue">90</span></td><td></td></tr>
+          <tr><td><strong>IGRP</strong></td><td><span class="badge badge-purple">100</span></td><td></td></tr>
+          <tr><td><strong>OSPF</strong></td><td><span class="badge badge-purple">110</span></td><td></td></tr>
+          <tr><td><strong>IS-IS</strong></td><td><span class="badge badge-purple">115</span></td><td></td></tr>
+          <tr><td><strong>RIP</strong></td><td><span class="badge badge-orange">120</span></td><td></td></tr>
+          <tr><td><strong>EIGRP externo</strong></td><td><span class="badge badge-orange">170</span></td><td></td></tr>
+          <tr><td><strong>BGP interno</strong></td><td><span class="badge badge-orange">200</span></td><td>Menor confianza entre protocolos dinámicos</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <strong>Regla clave:</strong>
+      <p>Si un router conoce una red por OSPF (DA=110) y por RIP (DA=120), instalará en la tabla de enrutamiento <strong>solo la ruta OSPF</strong> por tener menor DA.</p>
+    </div>
+  </section>
+
+  <!-- 4. PROTOCOLOS -->
+  <section id="protocolos">
+    <h2><span class="h2-icon">🔗</span>Protocolos de Enrutamiento</h2>
+    <p>Un <strong>protocolo de enrutamiento</strong> es un protocolo utilizado por los routers para <strong>intercambiar información acerca de redes IP</strong> a las que se encuentran conectados.</p>
+
+    <h3>Taxonomía completa de protocolos</h3>
+    <div class="tree-diagram">
+      <div class="tree-root">
+        <div class="tree-node root">Protocolos de Enrutamiento</div>
+        <div class="tree-connector"></div>
+        <div class="tree-level">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+            <div class="tree-node static">Estáticos</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+            <div class="tree-node dynamic">Dinámicos</div>
+            <div class="tree-connector"></div>
+            <div class="tree-level">
+              <div style="display:flex;flex-direction:column;align-items:center;">
+                <div class="tree-node interior">P. de Interior (IGP)</div>
+                <div class="tree-connector"></div>
+                <div class="tree-level" style="margin-top:0">
+                  <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="tree-node link-state">Estado de Enlace</div>
+                    <div class="tree-connector"></div>
+                    <div class="tree-level" style="margin-top:0">
+                      <div class="tree-node leaf-blue">IS-IS</div>
+                      <div class="tree-node leaf-blue">OSPF</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;">
+                    <div class="tree-node dist-vec">Vector Distancia</div>
+                    <div class="tree-connector"></div>
+                    <div class="tree-level" style="margin-top:0">
+                      <div class="tree-node leaf-blue">RIP</div>
+                      <div class="tree-node leaf-blue">IGRP</div>
+                      <div class="tree-node leaf-blue">EIGRP</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;">
+                <div class="tree-node exterior">P. de Exterior (EGP)</div>
+                <div class="tree-connector"></div>
+                <div class="tree-level" style="margin-top:0">
+                  <div class="tree-node leaf-purple">BGP</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Comparativa técnica de protocolos</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Protocolo</th><th>Tipo</th><th>Algoritmo</th><th>DA</th><th>Métrica</th><th>Ámbito</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>RIP v1/v2</strong></td><td>IGP</td><td>Vector Distancia</td><td>120</td><td>Hop Count (máx. 15)</td><td>Interior</td></tr>
+          <tr><td><strong>IGRP</strong></td><td>IGP</td><td>Vector Distancia</td><td>100</td><td>BW + delay + reliability + load</td><td>Interior (Cisco)</td></tr>
+          <tr><td><strong>EIGRP</strong></td><td>IGP</td><td>Híbrido (DUAL)</td><td>90/170</td><td>Compuesta (BW + delay)</td><td>Interior (Cisco)</td></tr>
+          <tr><td><strong>OSPF</strong></td><td>IGP</td><td>Estado de Enlace (SPF)</td><td>110</td><td>Costo (10⁸/BW)</td><td>Interior</td></tr>
+          <tr><td><strong>IS-IS</strong></td><td>IGP</td><td>Estado de Enlace</td><td>115</td><td>Costo</td><td>Interior</td></tr>
+          <tr><td><strong>BGP</strong></td><td>EGP</td><td>Path Vector</td><td>20/200</td><td>Atributos (AS-path)</td><td>Exterior (Internet)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>El router opera en Capas 1, 2 y 3</h3>
+    <div class="callout info">
+      <strong>Procesamiento multicapa del router:</strong>
+      <p>Al recibir un paquete, el router procesa la trama en <strong>Capa 1 y 2</strong> (desencapsula), examina el paquete IP en <strong>Capa 3</strong>, toma la decisión de reenvío, y <strong>re-encapsula</strong> el paquete en una nueva trama L2 para el siguiente enlace. Los hosts finales procesan hasta Capa 7.</p>
+    </div>
+  </section>
+
+  <!-- 5. SISTEMA AUTÓNOMO -->
+  <section id="sistema-autonomo">
+    <h2><span class="h2-icon">🌐</span>Sistema Autónomo (AS)</h2>
+    <div class="callout purple">
+      <strong>Definición oficial:</strong>
+      <p>Un Sistema Autónomo (AS) se define como <strong>"un grupo de redes que poseen una política de rutas propia e independiente"</strong>, que realiza su propia gestión del tráfico que fluye entre él y los restantes Sistemas Autónomos que forman Internet. La entidad que regula la numeración es la <strong>IANA</strong>.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card accent-blue">
+        <div class="card-icon">🔢</div>
+        <div class="card-title">Número ASN</div>
+        <div class="card-body">Cada AS recibe un número único (<strong>ASN</strong>) que lo identifica dentro de Internet. Existen ASNs de <strong>16 bits</strong> (originales) y de <strong>32 bits</strong> (extendidos, RFC4893).</div>
+      </div>
+      <div class="card accent-purple">
+        <div class="card-icon">🏛️</div>
+        <div class="card-title">IANA</div>
+        <div class="card-body">Internet Assigned Numbers Authority. Entidad global que regula y distribuye bloques de ASNs a los RIRs regionales (ARIN, LACNIC, RIPE, APNIC, AFRINIC).</div>
+      </div>
+      <div class="card accent-green">
+        <div class="card-icon">🔒</div>
+        <div class="card-title">BGP y AS</div>
+        <div class="card-body">El protocolo BGP (Border Gateway Protocol) usa el ASN para intercambiar rutas <strong>entre</strong> Sistemas Autónomos. Es el protocolo de enrutamiento de Internet.</div>
+      </div>
+    </div>
+
+    <h3>Tabla completa de rangos ASN</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Número ASN</th><th>Bits</th><th>Descripción</th><th>RFC</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>0</strong></td><td>16</td><td>Reservado</td><td>[RFC1930]</td></tr>
+          <tr><td><strong>1 – 23455</strong></td><td>16</td><td><span class="badge badge-green">ASNs Públicos</span></td><td>—</td></tr>
+          <tr><td><strong>23456</strong></td><td>16</td><td>Reservado para transición de pool AS</td><td>[RFC6793]</td></tr>
+          <tr><td><strong>23457 – 64534</strong></td><td>16</td><td><span class="badge badge-green">ASNs Públicos</span></td><td>—</td></tr>
+          <tr><td><strong>64000 – 64495</strong></td><td>16</td><td>Reservado por IANA</td><td>—</td></tr>
+          <tr><td><strong>64496 – 64511</strong></td><td>16</td><td>Reservado para uso en documentación y código de ejemplo</td><td>[RFC5398]</td></tr>
+          <tr><td><strong>64512 – 65534</strong></td><td>16</td><td><span class="badge badge-orange">ASN para uso privado</span></td><td>—</td></tr>
+          <tr><td><strong>65535</strong></td><td>16</td><td>Reservado</td><td>—</td></tr>
+          <tr><td><strong>65536 – 65551</strong></td><td>32</td><td>Reservado para uso en documentación y código de ejemplo</td><td>[RFC4893][RFC5398]</td></tr>
+          <tr><td><strong>65552 – 131071</strong></td><td>32</td><td>Reservado</td><td>—</td></tr>
+          <tr><td><strong>131072 – 4199999999</strong></td><td>32</td><td><span class="badge badge-green">ASNs Públicos de 32-bit</span></td><td>—</td></tr>
+          <tr><td><strong>4200000000 – 4294967294</strong></td><td>32</td><td><span class="badge badge-orange">ASN para uso privado</span></td><td>[RFC6996]</td></tr>
+          <tr><td><strong>4294967295</strong></td><td>32</td><td>Reservado</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6. IPv6 -->
+  <section id="ipv6">
+    <h2><span class="h2-icon">🌍</span>IPv6</h2>
+
+    <h3>¿Por qué no usamos IPv5?</h3>
+    <p>IPv5 <strong>nunca fue aceptado como protocolo oficial de Internet</strong>. Esto se debió principalmente a la limitación de 32 bits — IPv5 utilizó el mismo sistema de direccionamiento que IPv4. A diferencia de IPv4, IPv6 tiene billones de direcciones posibles.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Decimal</th><th>Keyword</th><th>Versión</th><th>Referencia</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0–1</td><td>—</td><td>Reserved</td><td>[Jon_Postel][RFC4928]</td></tr>
+          <tr><td>2–3</td><td>—</td><td>Unassigned</td><td>[Jon_Postel]</td></tr>
+          <tr><td><strong>4</strong></td><td><strong>IP</strong></td><td><strong>Internet Protocol (IPv4)</strong></td><td>[RFC791][Jon_Postel]</td></tr>
+          <tr><td>5</td><td>—</td><td>Reserved (Historic)</td><td>[RFC1819][SC589H]</td></tr>
+          <tr><td><strong>6</strong></td><td><strong>IPv6</strong></td><td><strong>Internet Protocol version 6</strong></td><td>[RFC8200]</td></tr>
+          <tr><td>7</td><td>TP/IX</td><td>TP/IX: The Next Internet</td><td>[RFC6814]</td></tr>
+          <tr><td>8–9-10-14-15</td><td>—</td><td>Reserved (Historic) / Unassigned</td><td>[RFC1621][SC589H][Jon_Postel]</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>¿Por qué usamos IPv6?</h3>
+    <div class="card-grid">
+      <div class="card accent-orange">
+        <div class="card-icon">⏰</div>
+        <div class="card-title">Agotamiento IPv4</div>
+        <div class="card-body">IPv4 se agotó en <strong>2011</strong>. Solo permite 2³² = <strong>4.300 millones</strong> de direcciones, insuficientes para la demanda global.</div>
+      </div>
+      <div class="card accent-green">
+        <div class="card-icon">♾️</div>
+        <div class="card-title">Espacio masivo</div>
+        <div class="card-body">IPv6 usa 128 bits: 2¹²⁸ = <strong>340 sextillones</strong> de direcciones. Permite segmentos de subred de tamaño fijo: <strong>64 bits para la red y 64 bits para los hosts</strong>.</div>
+      </div>
+      <div class="card accent-blue">
+        <div class="card-icon">⚙️</div>
+        <div class="card-title">Autoconfiguración</div>
+        <div class="card-body">SLAAC (Stateless Address Autoconfiguration). Los dispositivos generan su dirección IPv6 automáticamente sin DHCP.</div>
+      </div>
+      <div class="card accent-purple">
+        <div class="card-icon">🔒</div>
+        <div class="card-title">Seguridad nativa</div>
+        <div class="card-body">IPSec es obligatorio en IPv6 (opcional en IPv4). Conexión <strong>extremo a extremo</strong> real — no hay NAT en IPv6.</div>
+      </div>
+    </div>
+
+    <h3>Implicaciones de migrar a IPv6</h3>
+    <ul class="step-list">
+      <li><span class="step-num">→</span><span><strong>Coexistencia:</strong> IPv6 convive con IPv4 (dual-stack, tunelización, traducción).</span></li>
+      <li><span class="step-num">→</span><span><strong>Hardware:</strong> Los dispositivos de Capa 3 deben soportar IPv6 o ser actualizables para soportarlo.</span></li>
+      <li><span class="step-num">→</span><span><strong>Sin NAT:</strong> No hay NAT en IPv6. Cada dispositivo tiene dirección pública real.</span></li>
+      <li><span class="step-num">→</span><span><strong>End-to-End:</strong> IPv6 es conexión de extremo a extremo sin intermediarios de traducción.</span></li>
+      <li><span class="step-num">→</span><span><strong>Sin nuevos servicios mágicos:</strong> IPv6 no agrega nuevas aplicaciones, solo más espacio y mejores características.</span></li>
+    </ul>
+
+    <h3>Tipos de direcciones IPv6</h3>
+    <div class="addr-grid">
+      <div class="addr-card type-global">
+        <div class="addr-type">Global Unicast (GUA)</div>
+        <div class="addr-prefix">2000::/3</div>
+        <div class="addr-desc">Equivalente a IP pública IPv4. Enrutables en Internet. El prefijo 2 o 3 denota GUA. <code>2001:DB8::/32</code> reservado para documentación.</div>
+      </div>
+      <div class="addr-card type-link">
+        <div class="addr-type">Link-Local</div>
+        <div class="addr-prefix">FE80::/10</div>
+        <div class="addr-desc">NO enrutables. Solo para comunicación en el mismo enlace. <strong>Todo dispositivo IPv6 DEBE tenerla.</strong> El Link-Local del router es el Default Gateway de la red interna. Aparece como dirección origen en descubrimiento de routers.</div>
+      </div>
+      <div class="addr-card type-loop">
+        <div class="addr-type">Loopback</div>
+        <div class="addr-prefix">::1/128</div>
+        <div class="addr-desc">Equivalente a 127.0.0.1 en IPv4. Para enviarse paquetes a sí mismo.</div>
+      </div>
+      <div class="addr-card type-loop">
+        <div class="addr-type">Unspecified</div>
+        <div class="addr-prefix">::/128</div>
+        <div class="addr-desc">Todos los hextetos son 0. Indica <strong>ausencia de dirección IPv6</strong>. Usado como origen antes de obtener dirección.</div>
+      </div>
+      <div class="addr-card type-mc">
+        <div class="addr-type">Multicast Assigned</div>
+        <div class="addr-prefix">FF::/8</div>
+        <div class="addr-desc">Reemplaza el broadcast de IPv4. Representa grupos: todos los routers, todos los nodos, todos los routers OSPF, etc.</div>
+      </div>
+      <div class="addr-card type-mc">
+        <div class="addr-type">Multicast Solicited Node</div>
+        <div class="addr-prefix">FF02::1:FF00:0/104</div>
+        <div class="addr-desc">Para averiguar MACs de dispositivos (Neighbor Discovery / ICMPv6). <strong>En IPv6 no existe ARP</strong>.</div>
+      </div>
+      <div class="addr-card type-unique">
+        <div class="addr-type">Unique Local</div>
+        <div class="addr-prefix">FC00::/7</div>
+        <div class="addr-desc">Equivalente a IPs privadas de IPv4 (FC00::/7 o FDFF::/7). No enrutables externamente. <strong>No hay NAT en IPv6</strong>, no se traducen.</div>
+      </div>
+      <div class="addr-card type-any">
+        <div class="addr-type">Anycast</div>
+        <div class="addr-prefix">(asignadas)</div>
+        <div class="addr-desc">Para enviar mensaje al dispositivo más cercano <strong>según métrica</strong> (NO al más cercano geográficamente).</div>
+      </div>
+      <div class="addr-card type-unspec">
+        <div class="addr-type">Embedded IPv4</div>
+        <div class="addr-prefix">::/80</div>
+        <div class="addr-desc">Direcciones <strong>obsoletas</strong>. Mecanismo de compatibilidad IPv4 en IPv6.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. NOTACIÓN IPv6 -->
+  <section id="notacion-ipv6">
+    <h2><span class="h2-icon">✏️</span>Notación IPv6</h2>
+    <p>Las direcciones IPv6 son de <strong>128 bits</strong> representados en <strong>8 hextetos</strong> de 16 bits cada uno (4 dígitos hex), separados por <code>:</code>. Cada dígito hexadecimal representa 4 bits.</p>
+
+    <h3>Formato completo</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Dirección IPv6 completa</span><span class="badge badge-purple">128 bits / 8 hextetos</span></div>
+      <pre><span class="addr">2001 : 0DB8 : 000A : 0001 : ABCD : 4567 : 0000 : CDEF</span>
+<span class="comment">  ↑      ↑      ↑      ↑      ↑      ↑      ↑      ↑</span>
+<span class="comment">  H1     H2     H3     H4     H5     H6     H7     H8</span>
+<span class="comment">  |←── 16 bits ──→|  cada hexteto: 0000–FFFF</span>
+<span class="comment">  |←── 4 dígitos hex = 4 bits c/u ──→|</span></pre>
+    </div>
+
+    <h3>Reglas de simplificación</h3>
+    <div class="card-grid">
+      <div class="card accent-blue">
+        <div class="card-title">Regla 1: Omitir ceros iniciales</div>
+        <div class="card-body">Se pueden omitir los 0's iniciales (izquierda) de cada hexteto.<br><br>
+        <code>0DB8 → DB8</code><br>
+        <code>000A → A</code><br>
+        <code>0001 → 1</code><br>
+        <code>0000 → 0</code></div>
+      </div>
+      <div class="card accent-purple">
+        <div class="card-title">Regla 2: Comprimir con "::"</div>
+        <div class="card-body">Un bloque consecutivo de hextetos 0000 puede reemplazarse por <code>::</code>. <strong>Solo una vez por dirección</strong>.<br><br>
+        <code>0000:0000 → ::</code></div>
+      </div>
+    </div>
+
+    <h3>Ejemplo de simplificación paso a paso</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Simplificación de dirección IPv6</span></div>
+      <pre><span class="comment">─ Dirección completa:</span>
+<span class="addr">2001:0DB8:000A:0000:ABCD:4567:0000:CDEF</span>
+
+<span class="comment">─ Paso 1: Omitir ceros iniciales de cada hexteto:</span>
+<span class="addr">2001:DB8:A:0:ABCD:4567:0:CDEF</span>
+
+<span class="comment">─ Paso 2: Comprimir bloque de 0s consecutivos con "::" (una vez):</span>
+<span class="val">2001:DB8:A::ABCD:4567:0:CDEF</span>
+
+<span class="comment">─ Nota: El hexteto "0" suelto NO se comprime junto con "::"</span>
+<span class="comment">  ya que "::" ya fue usado. Queda como "0".</span></pre>
+    </div>
+
+    <h3>Direcciones inválidas (ejemplos del material)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Dirección</th><th>Error</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>2001.0DB8.000A.0001.ABCD.4567.0000.CDEF</code></td><td>Usa puntos (<code>.</code>) en lugar de dos puntos (<code>:</code>)</td></tr>
+          <tr><td><code>2001:0DB8:000A:0001:ABLN:4567:0000:CDEF</code></td><td>Contiene caracteres no hexadecimales (L, N)</td></tr>
+          <tr><td><code>2001:0DB8:000A:0001:0001:4567:0000:CDEF:0001</code></td><td>Tiene 9 hextetos en lugar de 8</td></tr>
+          <tr><td><code>2001:0DB81:000A:0001:0001:4567:0000:CDEF:0001</code></td><td>Hexteto con 5 dígitos (máximo 4) y 9 grupos</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Prefijos IPv6 — Estructura</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Estructura de prefijo con /60</span></div>
+      <pre><span class="addr">2001:0DB8:000A:0000:ABCD:4567:0000:CDEF/60</span>
+<span class="comment"> ├──────────────────┤ ├────┤ ├──────────────────────┤</span>
+<span class="comment"> Prefijo de Red(48b)  SubRed   ID de Interfaz (68b)</span>
+<span class="comment">                     (12b)</span>
+
+<span class="comment">Los PREFIJOS determinan la cantidad de bits para la red.</span>
+<span class="comment">El restante (128 - 60 = 68 bits) son para las interfaces.</span>
+<span class="comment">Prefijo estándar de subredes IPv6: /64 (64 red + 64 host)</span></pre>
+    </div>
+  </section>
+
+  <!-- 8. ENRUTAMIENTO ESTÁTICO -->
+  <section id="estatico">
+    <h2><span class="h2-icon">📌</span>Enrutamiento Estático</h2>
+    <p>Las rutas estáticas son configuradas <strong>manualmente</strong> por el administrador. No se adaptan automáticamente a cambios en la topología.</p>
+
+    <div class="card-grid">
+      <div class="card accent-green">
+        <div class="card-icon">✅</div>
+        <div class="card-title">Ventajas</div>
+        <div class="card-body">Sin overhead de protocolo. Determinismo total. Menor uso de CPU y ancho de banda. DA=1 (alta confianza).</div>
+      </div>
+      <div class="card accent-orange">
+        <div class="card-icon">⚠️</div>
+        <div class="card-title">Desventajas</div>
+        <div class="card-body">No escala en redes grandes. Sin adaptación automática a fallas. Mantenimiento manual costoso.</div>
+      </div>
+      <div class="card accent-blue">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">Caso de Uso</div>
+        <div class="card-body">Redes pequeñas o estables. Ruta por defecto (default route). Redes stub (un solo camino de salida).</div>
+      </div>
+    </div>
+
+    <h3>Comandos de configuración</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Rutas estáticas — Cisco IOS</span><span class="badge badge-purple">CISCO IOS</span></div>
+      <pre><span class="comment">! Ruta estática IPv4 (por next-hop)</span>
+Router(config)# <span class="cmd">ip route</span> <span class="addr">192.168.4.0</span> <span class="val">255.255.255.0</span> <span class="addr">192.168.3.2</span>
+
+<span class="comment">! Ruta estática IPv4 (por interfaz de salida)</span>
+Router(config)# <span class="cmd">ip route</span> <span class="addr">192.168.4.0</span> <span class="val">255.255.255.0</span> <span class="val">s0/0/0</span>
+
+<span class="comment">! Ruta por defecto IPv4</span>
+Router(config)# <span class="cmd">ip route</span> <span class="addr">0.0.0.0</span> <span class="val">0.0.0.0</span> <span class="addr">192.168.1.1</span>
+
+<span class="comment">! Ruta estática IPv6</span>
+Router(config)# <span class="cmd">ipv6 route</span> <span class="addr">2001:DB8:2::/64</span> <span class="addr">2001:DB8:1::2</span>
+
+<span class="comment">! Verificar tabla de enrutamiento</span>
+Router# <span class="cmd">show ip route</span>
+Router# <span class="cmd">show ipv6 route</span></pre>
+    </div>
+  </section>
+
+  <!-- 9. LABORATORIO MIKROTIK -->
+  <section id="laboratorio">
+    <h2><span class="h2-icon">🔬</span>Laboratorio Mikrotik</h2>
+    <p>El laboratorio utiliza routers <strong>Mikrotik</strong> (HAP AC Lite, HAP Lite, HAP Mini) e interconectados con routers Cisco para practicar enrutamiento estático entre plataformas distintas.</p>
+
+    <h3>Equipamiento Mikrotik disponible</h3>
+    <div class="card-grid">
+      <div class="card accent-blue">
+        <div class="card-icon">📦</div>
+        <div class="card-title">HAP AC Lite</div>
+        <div class="card-body">Router Mikrotik de escritorio. 5 puertos Ethernet. Soporte WiFi dual-band 2.4/5GHz. RouterOS.</div>
+      </div>
+      <div class="card accent-blue">
+        <div class="card-icon">📦</div>
+        <div class="card-title">HAP Lite</div>
+        <div class="card-body">Router compacto Mikrotik. 4 puertos. WiFi 2.4GHz. Ideal para laboratorios básicos de enrutamiento.</div>
+      </div>
+      <div class="card accent-blue">
+        <div class="card-icon">📦</div>
+        <div class="card-title">HAP Mini</div>
+        <div class="card-body">Versión ultra-compacta. 3 puertos Ethernet. WiFi 2.4GHz. RouterOS completo.</div>
+      </div>
+    </div>
+
+    <h3>Topología del laboratorio</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Dispositivo</th><th>Interfaz</th><th>Dirección IP</th><th>Red</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Mk1</strong> (Mikrotik)</td><td>eth4</td><td><code>10.0.0.1</code></td><td>10.0.0.0</td></tr>
+          <tr><td><strong>Cisco1</strong></td><td>Fa0/0</td><td><code>10.0.0.2</code></td><td>10.0.0.0</td></tr>
+          <tr><td><strong>Cisco1</strong></td><td>s0/0/0</td><td><code>20.0.0.1</code></td><td>20.0.0.0</td></tr>
+          <tr><td><strong>Cisco2</strong></td><td>s0/0</td><td><code>20.0.0.2</code></td><td>20.0.0.0</td></tr>
+          <tr><td><strong>Cisco2</strong></td><td>Fa0/0</td><td><code>30.0.0.1</code></td><td>30.0.0.0</td></tr>
+          <tr><td><strong>Mk2</strong> (Mikrotik)</td><td>eth4</td><td><code>30.0.0.2</code></td><td>30.0.0.0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span>Rutas estáticas necesarias — Cisco1</span><span class="badge badge-orange">CISCO IOS</span></div>
+      <pre><span class="comment">! Para que Cisco1 alcance la red 30.0.0.0</span>
+Cisco1(config)# <span class="cmd">ip route</span> <span class="addr">30.0.0.0</span> <span class="val">255.0.0.0</span> <span class="addr">20.0.0.2</span>
+<span class="comment">! Para que Cisco1 alcance la red Mk1 (ya conectada directamente)</span>
+<span class="comment">! La red 10.0.0.0 ya está en la tabla como "Conectada"</span>
+
+<span class="comment">! Verificar conectividad</span>
+Cisco1# <span class="cmd">ping</span> <span class="addr">30.0.0.2</span>
+Cisco1# <span class="cmd">show ip route</span></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span>Rutas estáticas — RouterOS Mikrotik</span><span class="badge badge-blue">MIKROTIK RouterOS</span></div>
+      <pre><span class="comment"># Agregar ruta estática en Mk1 hacia red 30.0.0.0</span>
+<span class="cmd">/ip route add</span> <span class="val">dst-address</span>=<span class="addr">30.0.0.0/8</span> <span class="val">gateway</span>=<span class="addr">10.0.0.2</span>
+<span class="cmd">/ip route add</span> <span class="val">dst-address</span>=<span class="addr">20.0.0.0/8</span> <span class="val">gateway</span>=<span class="addr">10.0.0.2</span>
+
+<span class="comment"># Verificar tabla de enrutamiento</span>
+<span class="cmd">/ip route print</span></pre>
+    </div>
+  </section>
+
+  <!-- CHEAT SHEET -->
+  <section id="cheat-sheet">
+    <h2><span class="h2-icon">⚡</span>Cheat Sheet — Referencia Rápida</h2>
+    <div class="cheat-grid">
+
+      <div class="cheat-card">
+        <div class="cheat-title">Distancias Administrativas (DA)</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Conectado</span><span class="val">0</span></div>
+          <div class="cheat-item"><span class="key">Estática</span><span class="val">1</span></div>
+          <div class="cheat-item"><span class="key">EIGRP sumaria</span><span class="val">5</span></div>
+          <div class="cheat-item"><span class="key">BGP externo</span><span class="val">20</span></div>
+          <div class="cheat-item"><span class="key">EIGRP interno</span><span class="val">90</span></div>
+          <div class="cheat-item"><span class="key">IGRP</span><span class="val">100</span></div>
+          <div class="cheat-item"><span class="key">OSPF</span><span class="val">110</span></div>
+          <div class="cheat-item"><span class="key">IS-IS</span><span class="val">115</span></div>
+          <div class="cheat-item"><span class="key">RIP</span><span class="val">120</span></div>
+          <div class="cheat-item"><span class="key">EIGRP externo</span><span class="val">170</span></div>
+          <div class="cheat-item"><span class="key">BGP interno</span><span class="val">200</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">IPv4 vs IPv6</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">IPv4 bits</span><span class="val">32 bits</span></div>
+          <div class="cheat-item"><span class="key">IPv4 direcciones</span><span class="val">2³² ≈ 4.300M</span></div>
+          <div class="cheat-item"><span class="key">IPv4 se agotó</span><span class="val">2011</span></div>
+          <div class="cheat-item"><span class="key">IPv6 bits</span><span class="val">128 bits</span></div>
+          <div class="cheat-item"><span class="key">IPv6 direcciones</span><span class="val">2¹²⁸ = 340 sextillones</span></div>
+          <div class="cheat-item"><span class="key">IPv6 subred estándar</span><span class="val">/64</span></div>
+          <div class="cheat-item"><span class="key">IPv6 hextetos</span><span class="val">8 (16 bits c/u)</span></div>
+          <div class="cheat-item"><span class="key">Separador IPv6</span><span class="val">: (dos puntos)</span></div>
+          <div class="cheat-item"><span class="key">ARP en IPv6</span><span class="val">No existe (→ NDP)</span></div>
+          <div class="cheat-item"><span class="key">NAT en IPv6</span><span class="val">No existe</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">Prefijos IPv6 por tipo</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Global Unicast</span><span class="val">2000::/3</span></div>
+          <div class="cheat-item"><span class="key">Link-Local</span><span class="val">FE80::/10</span></div>
+          <div class="cheat-item"><span class="key">Loopback</span><span class="val">::1/128</span></div>
+          <div class="cheat-item"><span class="key">Unspecified</span><span class="val">::/128</span></div>
+          <div class="cheat-item"><span class="key">Multicast</span><span class="val">FF::/8</span></div>
+          <div class="cheat-item"><span class="key">Solicited Node MC</span><span class="val">FF02::1:FF00:0/104</span></div>
+          <div class="cheat-item"><span class="key">Unique Local</span><span class="val">FC00::/7</span></div>
+          <div class="cheat-item"><span class="key">Embedded IPv4</span><span class="val">::/80 (obsoleto)</span></div>
+          <div class="cheat-item"><span class="key">Doc/Ejemplo</span><span class="val">2001:DB8::/32</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">Rangos ASN privados</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Privado 16-bit</span><span class="val">64512 – 65534</span></div>
+          <div class="cheat-item"><span class="key">Privado 32-bit</span><span class="val">4200000000 – 4294967294</span></div>
+          <div class="cheat-item"><span class="key">Documentación 16b</span><span class="val">64496 – 64511</span></div>
+          <div class="cheat-item"><span class="key">Documentación 32b</span><span class="val">65536 – 65551</span></div>
+          <div class="cheat-item"><span class="key">Transición pool AS</span><span class="val">23456</span></div>
+          <div class="cheat-item"><span class="key">RFC IPv6 actual</span><span class="val">RFC 8200</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">Comandos Cisco — Verificación</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Ver tabla IPv4</span><span class="val">show ip route</span></div>
+          <div class="cheat-item"><span class="key">Ver tabla IPv6</span><span class="val">show ipv6 route</span></div>
+          <div class="cheat-item"><span class="key">Ver interfaces</span><span class="val">show ip int brief</span></div>
+          <div class="cheat-item"><span class="key">Ver vecinos OSPF</span><span class="val">show ip ospf neighbor</span></div>
+          <div class="cheat-item"><span class="key">Ver vecinos BGP</span><span class="val">show bgp neighbors</span></div>
+          <div class="cheat-item"><span class="key">Ruta estática</span><span class="val">ip route [red] [mask] [gw]</span></div>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cheat-title">Lab Mikrotik — IPs</div>
+        <div class="cheat-body">
+          <div class="cheat-item"><span class="key">Mk1 eth4</span><span class="val">10.0.0.1</span></div>
+          <div class="cheat-item"><span class="key">Cisco1 Fa0/0</span><span class="val">10.0.0.2</span></div>
+          <div class="cheat-item"><span class="key">Cisco1 s0/0/0</span><span class="val">20.0.0.1</span></div>
+          <div class="cheat-item"><span class="key">Cisco2 s0/0</span><span class="val">20.0.0.2</span></div>
+          <div class="cheat-item"><span class="key">Cisco2 Fa0/0</span><span class="val">30.0.0.1</span></div>
+          <div class="cheat-item"><span class="key">Mk2 eth4</span><span class="val">30.0.0.2</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- AUTOEVALUACIÓN -->
+  <section id="autoevaluacion">
+    <h2><span class="h2-icon">🧪</span>Autoevaluación</h2>
+    <p>Selecciona la respuesta correcta. Los resultados aparecen con explicación técnica inmediata.</p>
+
+    <!-- Q1 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q1</span>Un router conoce la red 192.168.10.0/24 por OSPF (DA=110) y por RIP (DA=120). ¿Qué ruta instala en su tabla de enrutamiento?</div>
+      <ul class="quiz-options" data-answer="0">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span>La ruta aprendida por OSPF, porque tiene menor DA (110 &lt; 120)</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span>La ruta aprendida por RIP, porque tiene mayor DA</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span>Ambas rutas, usando load balancing automático</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span>Ninguna, el router descarta rutas con DA diferente</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> La Distancia Administrativa determina la confiabilidad de la fuente. <strong>Menor DA = mayor confianza</strong>. OSPF (DA=110) gana sobre RIP (DA=120). Solo si la DA fuera igual, se usaría la métrica para desempatar.</div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q2</span>¿Cuántas direcciones IPv6 posibles existen y cuál es el tamaño estándar del segmento de host en una subred IPv6?</div>
+      <ul class="quiz-options" data-answer="2">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span>2³² = 4.300 millones; el host ocupa 32 bits</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span>2⁶⁴ = 18 quintillones; el host ocupa 32 bits</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span>2¹²⁸ = 340 sextillones; segmento de subred fijo: 64 bits para la red y 64 bits para los hosts</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span>2¹²⁸ = 340 sextillones; segmento de host variable según máscara</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> IPv6 usa 128 bits → 2¹²⁸ = 340 sextillones de direcciones. El estándar IPv6 define segmentos de subred de tamaño <strong>fijo /64</strong>: 64 bits para identificar la red/subred y 64 bits para el ID de interfaz (host).</div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q3</span>¿Cuál es la diferencia funcional entre una dirección IPv6 Link-Local y una Global Unicast?</div>
+      <ul class="quiz-options" data-answer="1">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span>Link-Local es enrutable en Internet; Global Unicast solo sirve para el enlace local</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span>Link-Local (FE80::/10) no es enrutable — solo comunica dispositivos en el mismo enlace. Global Unicast (2000::/3) es enrutable en Internet y equivale a una IP pública</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span>Ambas son equivalentes pero con rangos distintos</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span>Link-Local reemplaza al loopback en IPv6</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> Link-Local (FE80::/10) es obligatoria en todo dispositivo IPv6 pero NO enrutable fuera del enlace. El Link-Local del router actúa como Default Gateway de la red interna. Global Unicast (2000::/3) es la IP pública enrutable en Internet.</div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q4</span>¿Cuál de las siguientes notaciones IPv6 es INVÁLIDA?</div>
+      <ul class="quiz-options" data-answer="2">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span><code>2001:DB8:A::ABCD:4567:0:CDEF</code></li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span><code>2001:DB8:A:0:ABCD:4567:0:CDEF</code></li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span><code>2001.0DB8.000A.0001.ABCD.4567.0000.CDEF</code></li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span><code>FE80::1</code></li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> La opción C usa puntos (<code>.</code>) como separador — IPv6 usa obligatoriamente dos puntos (<code>:</code>). Los puntos se usan en notación decimal de IPv4. Las opciones A y B son válidas (compresión de ceros), y FE80::1 es una dirección Link-Local válida comprimida.</div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="quiz-item">
+      <div class="quiz-q"><span class="quiz-num">Q5</span>¿Qué protocolo reemplaza a ARP en IPv6, y cuál es el tipo de dirección multicast que utiliza para este propósito?</div>
+      <ul class="quiz-options" data-answer="3">
+        <li data-opt="0" onclick="checkAnswer(this)"><span class="quiz-letter">A</span>RARP; utiliza direcciones Anycast</li>
+        <li data-opt="1" onclick="checkAnswer(this)"><span class="quiz-letter">B</span>DNS; utiliza direcciones Global Unicast</li>
+        <li data-opt="2" onclick="checkAnswer(this)"><span class="quiz-letter">C</span>ICMP v4; utiliza direcciones Unique Local</li>
+        <li data-opt="3" onclick="checkAnswer(this)"><span class="quiz-letter">D</span>NDP (Neighbor Discovery Protocol) vía ICMPv6; utiliza direcciones Multicast Solicited Node (FF02::1:FF00:0/104)</li>
+      </ul>
+      <div class="quiz-explanation">✅ <strong>Correcto.</strong> En IPv6 <strong>no existe ARP</strong>. El Neighbor Discovery Protocol (NDP), transportado por ICMPv6, realiza la resolución de direcciones MAC. Usa las direcciones <strong>Multicast Solicited Node (FF02::1:FF:0000/104)</strong> para descubrir la MAC de un dispositivo específico en el enlace local.</div>
+    </div>
+
+  </section>
+
+  <!-- CHAPTER FOOTER -->
+  <div class="chapter-footer">
+    <div class="cf-label">Navegación entre Capítulos</div>
+    <div class="chapter-nav-cards">
+      <a href="index.html" class="chapter-nav-card">
+        <span class="cnc-dir prev-dir">← Anterior</span>
+        <span class="cnc-num">Cap. 01</span>
+        <span class="cnc-title">Redes de Conmutación</span>
+        <span class="cnc-desc">Switching, VLANs, Spanning Tree Protocol y prevención de bucles en redes LAN Capa 2.</span>
+        <div class="cnc-tags">
+          <span class="cnc-tag">Switching</span>
+          <span class="cnc-tag">VLANs</span>
+          <span class="cnc-tag">STP</span>
+          <span class="cnc-tag">Ethernet</span>
+        </div>
+      </a>
+      <span class="chapter-nav-card locked-card">
+        <span class="cnc-dir next-dir">Siguiente →</span>
+        <span class="cnc-num">Cap. 03</span>
+        <span class="cnc-title">Próximamente</span>
+        <span class="cnc-desc">Sube las diapositivas del siguiente tema para generar este capítulo.</span>
+        <span class="locked-note">🔒 Pendiente de generar</span>
+      </span>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ─── PROGRESS BAR ───
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (scrolled / total * 100) + '%';
+  });
+
+  // ─── ACTIVE NAV ───
+  const navLinks = document.querySelectorAll('#sidebar nav a');
+  const sections = document.querySelectorAll('section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // ─── QUIZ ───
+  function checkAnswer(el) {
+    const ul = el.closest('ul');
+    if (ul.dataset.answered) return;
+    ul.dataset.answered = '1';
+    const correct = parseInt(ul.dataset.answer);
+    const chosen = parseInt(el.dataset.opt);
+    ul.querySelectorAll('li').forEach((li, i) => {
+      li.classList.add('disabled');
+      if (i === correct) li.classList.add('correct');
+      else if (i === chosen && chosen !== correct) li.classList.add('wrong');
+    });
+    ul.closest('.quiz-item').querySelector('.quiz-explanation').classList.add('show');
+  }
+</script>
+</body>
+</html>
